@@ -26,9 +26,9 @@ const TEST_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-// Command containing options
-const CHALLENGE_COMMAND = {
-  name: 'challenge',
+// START: play command
+const PLAY_COMMAND = {
+  name: 'play',
   description: 'Challenge to a match of rock paper scissors',
   options: [
     {
@@ -43,7 +43,26 @@ const CHALLENGE_COMMAND = {
   integration_types: [0, 1],
   contexts: [0, 2],
 };
+// END: play command
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND];
+// Command containing options
+// const CHALLENGE_COMMAND = {
+//   name: 'challenge',
+//   description: 'Challenge to a match of rock paper scissors',
+//   options: [
+//     {
+//       type: 3,
+//       name: 'object',
+//       description: 'Pick your object',
+//       required: true,
+//       choices: createCommandChoices(),
+//     },
+//   ],
+//   type: 1,
+//   integration_types: [0, 1],
+//   contexts: [0, 2],
+// };
+
+const ALL_COMMANDS = [TEST_COMMAND, PLAY_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
