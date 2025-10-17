@@ -1,71 +1,250 @@
+/*
 import 'dotenv/config';
 import express from 'express';
 import {
-  ButtonStyleTypes,
-  InteractionResponseFlags,
-  InteractionResponseType,
   InteractionType,
-  MessageComponentTypes,
+  InteractionResponseType,
+  InteractionCallbackType,
   verifyKeyMiddleware,
 } from 'discord-interactions';
-import { getRandomEmoji, DiscordRequest } from './utils.js';
-import { getShuffledOptions, getResult } from './game.js';
+import { getRandomEmoji } from './utils.js';
+import { getShuffledOptions } from './game.js';
+import { Deck } from './card.js';
 
-// Create an express app
 const app = express();
-// Get port, or default to 3000
 const PORT = process.env.PORT || 3000;
-// To keep track of our active games
-const activeGames = {};
+const games = new Map();
 
-/**
- * Interactions endpoint URL where Discord will send HTTP requests
- * Parse request body and verifies incoming requests using discord-interactions package
- */
-app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async function (req, res) {
-  // Interaction id, type and data
-  const { id, type, data } = req.body;
+app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (req, res) => {
+  try {
+    console.log('📥 Incoming Interaction');
+    const body = req.body;
+    const { type, data } = body;
 
-  /**
-   * Handle verification requests
-   */
-  if (type === InteractionType.PING) {
-    return res.send({ type: InteractionResponseType.PONG });
-  }
-
-  /**
-   * Handle slash command requests
-   * See https://discord.com/developers/docs/interactions/application-commands#slash-commands
-   */
-  if (type === InteractionType.APPLICATION_COMMAND) {
-    const { name } = data;
-
-    // "test" command
-    if (name === 'test') {
-      // Send a message into the channel where command was triggered from
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          flags: InteractionResponseFlags.IS_COMPONENTS_V2,
-          components: [
-            {
-              type: MessageComponentTypes.TEXT_DISPLAY,
-              // Fetches a random emoji to send from a helper function
-              content: `hello world ${getRandomEmoji()}`
-            }
-          ]
-        },
-      });
+    // ✅ PING check
+    if (type === InteractionType.PING) {
+      return res.send({ type: InteractionResponseType.PONG });
     }
 
-    console.error(`unknown command: ${name}`);
-    return res.status(400).json({ error: 'unknown command' });
-  }
+    // ✅ Slash command handling
+    if (type === InteractionType.APPLICATION_COMMAND) {
+      const { name } = data;
 
-  console.error('unknown interaction type', type);
-  return res.status(400).json({ error: 'unknown interaction type' });
+      // /test command
+      if (name === 'test') {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `Hello world ${getRandomEmoji()}` },
+        });
+      }
+
+      // /guess command
+      if (name === 'guess') {
+        const userId = body.member.user.id;
+        const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
+        const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+
+        if (!games.has(userId)) {
+          const deck = new Deck();
+          const secretCard = deck.draw();
+          games.set(userId, secretCard);
+        }
+
+        const secretCard = games.get(userId);
+        let responseText;
+
+        if (
+          suitGuess === secretCard.suit.toLowerCase() &&
+          valueGuess === secretCard.value.toUpperCase()
+        ) {
+          games.delete(userId);
+          responseText = `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`;
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: responseText },
+          });
+        } else {
+          // Generate hint if correct suit
+          if (suitGuess === secretCard.suit.toLowerCase()) {
+            responseText = `Hint: you got the correct suit of the card!`;
+          } else {
+            responseText = `❌ Nope! It wasn’t ${valueGuess} of ${suitGuess}. Try again!`;
+          }
+
+          // Provide action buttons for "make another guess" or "end game"
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: responseText,
+              components: [
+                {
+                  type: 1,
+                  components: [
+                    {
+                      type: 2,
+                      label: 'Make another guess',
+                      style: 1,
+                      custom_id: `guess_again_${userId}`,
+                    },
+                    {
+                      type: 2,
+                      label: 'End the game',
+                      style: 4,
+                      custom_id: `end_game_${userId}`,
+                    },
+                  ],
+                },
+              ],
+            },
+          });
+        }
+      }
+    }
+
+    // ✅ Component (button) interactions
+    if (type === InteractionType.MESSAGE_COMPONENT) {
+      const userId = body.member.user.id;
+      const customId = data.custom_id;
+      const secretCard = games.get(userId);
+
+      if (!secretCard) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'No active game found! Use `/guess` to start a new one.' },
+        });
+      }
+
+      if (customId.startsWith('end_game_')) {
+        games.delete(userId);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `🛑 Game ended. The secret card was **${secretCard.value} of ${secretCard.suit}**.`,
+          },
+        });
+      }
+
+      if (customId.startsWith('guess_again_')) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: '🔁 Okay! Make another guess using `/guess`!',
+          },
+        });
+      }
+    }
+
+    res.status(400).send('Unknown interaction type');
+  } catch (err) {
+    console.error('❌ Error handling interaction:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
+app.get('/', (_, res) => res.send('Bot is running!'));
+
+app.listen(PORT, () => console.log(`🚀 Listening on port ${PORT}`));
+
+*/
+import 'dotenv/config';
+import express from 'express';
+import {
+  InteractionType,
+  InteractionResponseType,
+  verifyKeyMiddleware,
+} from 'discord-interactions';
+import { getRandomEmoji } from './utils.js';
+import { getShuffledOptions } from './game.js';
+import { Deck } from './card.js';
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const games = new Map();
+
+// ✅ Middleware (verifyKeyMiddleware handles raw body internally)
+app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (req, res) => {
+  try {
+    console.log('📥 Incoming Interaction');
+    const body = req.body; // Already parsed JSON object
+    const { type, data } = body;
+
+    if (type === InteractionType.PING) {
+      return res.send({ type: InteractionResponseType.PONG });
+    }
+
+    if (type === InteractionType.APPLICATION_COMMAND) {
+      const { name } = data;
+
+      // /test
+      if (name === 'test') {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `Hello world ${getRandomEmoji()}` },
+        });
+      }
+
+      // /challenge
+      if (name === 'challenge') {
+        const options = getShuffledOptions();
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'Choose your fighter!',
+            components: [
+              {
+                type: 1,
+                components: [{ type: 3, custom_id: 'starter', options }],
+              },
+            ],
+          },
+        });
+      }
+
+      // /guess
+      if (name === 'guess') {
+        const userId = body.member.user.id;
+        const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
+        const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+
+        if (!games.has(userId)) {
+          const deck = new Deck();
+          const secretCard = deck.draw();
+          games.set(userId, secretCard);
+        }
+
+        const secretCard = games.get(userId);
+        if (
+          suitGuess === secretCard.suit.toLowerCase() &&
+          valueGuess === secretCard.value.toUpperCase()
+        ) {
+          games.delete(userId);
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`,
+            },
+          });
+        } else {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: `❌ Nope! It wasn’t ${valueGuess} of ${suitGuess}. Try again!`,
+            },
+          });
+        }
+      }
+    }
+
+    res.status(400).send('Unknown interaction type');
+  } catch (err) {
+    console.error('❌ Error handling interaction:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Health check
+app.get('/', (_, res) => res.send('Bot is running!'));
+
 app.listen(PORT, () => {
-  console.log('Listening on port', PORT);
+  console.log(`🚀 Listening on port ${PORT}`);
 });
