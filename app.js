@@ -153,7 +153,7 @@ import {
   InteractionResponseType,
   verifyKeyMiddleware,
 } from 'discord-interactions';
-import { getRandomEmoji } from './utils.js';
+import { getRandomEmoji, capitalize } from './utils.js';
 import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
 
@@ -234,13 +234,13 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
               content: `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`,
             },
           });
-        }else if(suitGuess == secretCard.suit){
-            return res.send({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: `❌ Nope! ${suitGuess} was the correct suit but ${valueGuess} was not the correct value. Try again!`,
-              },
-            });
+        } else if (suitGuess === secretCard.suit.toLowerCase()) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: `❌ Nope! ${capitalize(suitGuess)} was the correct suit but ${valueGuess} was not the correct value. Try again!`,
+            },
+          });
         }
           
         else {
