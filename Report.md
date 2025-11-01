@@ -36,9 +36,9 @@ Github's Advisory Database entry classifies the vulnerability as a regular expre
 
 #### `npx eslint`
 
-`npx eslint` was run on the most updated version of the code, pulled from the main branch on 10/31/25.
+`npx eslint` was run on the most updated version of the code, pulled from the main branch on 10/31/25; 23 issues were reported.
 
-| Issue | [eslint rule]([https://eslint.org/docs/latest/rules/](https://eslint.org/docs/latest/rules/)) | # of times issue was reported |
+| Issue | [eslint rule]([https://eslint.org/docs/latest/rules/](https://eslint.org/docs/latest/rules/)) | # of times issue was identified |
 | --- | --- | --- |
 | Unused variable | [no-unused-vars]([https://eslint.org/docs/latest/rules/no-unused-vars#rule-details](https://eslint.org/docs/latest/rules/no-unused-vars#rule-details)) | 2 |
 | Undeclared variable | [no-undef]([https://eslint.org/docs/latest/rules/no-undef#rule-details](https://eslint.org/docs/latest/rules/no-undef#rule-details)) | 21 |
