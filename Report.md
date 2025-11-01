@@ -55,4 +55,10 @@ Identified a problem where the user can type in multiple suits and values. We wa
 - An input verification has been added, which will alert the player if they make unreasonable inputs.
   
 ## Christie
-
+- In the web folder, this is a logic flaw: Incorrect Card Values in main.js.
+- The Issue: The values array assigns:
+    Jack (J) has a value of 11. (Should typically be 10)
+    Queen (Q) has a value of 12. (Should typically be 10)
+    King (K) has a value of 13. (Should typically be 10)
+    Ace (A) has a value of 1. (In games like Blackjack, it often needs to be handled as 1 or 11.)
+- The current implementation assigns non-standard values to these cards, which would be incorrect for most traditional card games.
