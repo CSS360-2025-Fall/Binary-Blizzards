@@ -1,8 +1,13 @@
 # Binary-Blizzards
-Version 1.1: Our team will build a bot that will play a card guessing game.
+CleanCode Version:
+- Unused code has been removed
+- ADD: Code reorganized to reflect typical game architecture
+- Comments added
 
-### Example Interaction
-1. User requests new game.
-2. Bot will choose a random card from a traditional card deck and ask the user for a guess.
-3. User guesses until correct card is discovered.
-Strech goal: Bot can provide hints.
+New Code architecture
+```mermaid
+flowchart TD
+    B[deck.js] <--> A[card.js]
+    B <--> C[game.js]
+    C <-->D[app.js]
+```
