@@ -3,6 +3,39 @@
 // just deck class and logic directly related to the deck
 //
 
+import { Card } from './card.js';
+
+export class Deck {
+    constructor() { // ADD: bool for joker?
+        this.deck = Card.createCards();//.shuffleDeck();
+    }
+
+    // Just used Fisher-Yates/Knuth shuffle.
+    shuffleDeck() {
+        let currentIndex = this.deck.length;
+        let randomIndex;
+
+        while(currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+
+            swap(currentIndex, randomIndex);            
+        }
+    }
+
+    // Just a static swap method to keep logic outside of
+    // shuffleDeck. May need to call a swap somewhere else
+    // long term; not an scalable swap method anyway.
+    static swap(currentIndex, randomIndex) {
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+
+//   draw() {
+//     const idx = Math.floor(Math.random() * this.cards.length);
+//     return this.cards.splice(idx, 1)[0]; // remove + return
+//   }
+}
+
 //
 // START: deck.js update (FIX tabs... :/)
 // class Deck {

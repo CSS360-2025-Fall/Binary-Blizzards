@@ -114,10 +114,7 @@ export class Card {
         cardStack.push(currentCard);
       }
     }
-
-    let example = cardStack[0];
-
-    return example.suit.name;
+    return cardStack;
   }
 
   toString() {

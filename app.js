@@ -13,21 +13,7 @@ import {
 import { getRandomEmoji, capitalize } from './utils.js';
 // import { getShuffledOptions } from './game.js';
 import { Card } from './card.js';
-// import { Deck } from './card.js';
-
-  // suits = {
-  //  Spade: {
-  //   name: 'Spade',
-  //   namePlural: 'Spades',
-  //   unicodeBlack: 'U+2660',
-  //   unicodeLine: 'U+2664',
-  //  }
-  // };
-
-  // const suit = new Map();
-  // suit.set(Spade,{name: 'Spade'});
-
-  // var myObject = { 'a': 1, 'b': 2, 'c': 3 };
+import { Deck } from './deck.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,7 +37,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       if (name === 'test') {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `Hello world ${Card.createCards()}` },
+          data: { content: `Hello world ${new Deck().deck[0].suit.name}` },
         });
       }
 
