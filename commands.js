@@ -9,6 +9,7 @@ import 'dotenv/config';
 // REMOVE
 // import { getShuffledDeck} from './game.js';
 import { capitalize, InstallGlobalCommands } from './utils.js';
+import { Card } from './card.js';
 // REMOVE: all stuff should comes from game
 // import { Deck } from './card.js';
 // REMOVE: all stuff should come from game
@@ -21,6 +22,55 @@ const TEST_COMMAND = {
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
+
+// function createCommandChoices() {
+//   const choices = getRPSChoices();
+//   const commandChoices = [];
+
+//   for (let choice of choices) {
+//     commandChoices.push({
+//       name: capitalize(choice),
+//       value: choice.toLowerCase(),
+//     });
+//   }
+// }
+
+//
+// START: TEST createCommandChoice for deck
+// function createCommandChoices() {
+//   const choices = getRPSChoices();
+//   const commandChoices = [];
+
+//   for (let choice of choices) {
+//     commandChoices.push({
+//       name: capitalize(choice),
+//       value: choice.toLowerCase(),
+//     });
+//   }
+// }
+// END: TEST createCommandChoice for deck
+//
+
+//
+// START: TEST new challenge command
+// const CHALLENGE_COMMAND = {
+//   name: 'challenge',
+//   description: 'Challenge to a match of rock paper scissors',
+//   options: [
+//     {
+//       type: 3,
+//       name: 'object',
+//       description: 'Pick your object',
+//       required: true,
+//       choices: createCommandChoices(),
+//     },
+//   ],
+//   type: 1,
+//   integration_types: [0, 1],
+//   contexts: [0, 2],
+// };
+// END: TEST new challenge
+//
 
 // const CHALLENGE_COMMAND = {
 //   name: 'challenge',
@@ -49,6 +99,7 @@ const GUESS_COMMAND = {
       name: 'suit',
       description: 'Enter the card suit (hearts, spades, clubs, diamonds)',
       required: true,
+      // choices: Card.getSuitChoices(),
     },
     {
       type: 3,

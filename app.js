@@ -14,6 +14,7 @@ import { getRandomEmoji, capitalize } from './utils.js';
 // import { getShuffledOptions } from './game.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
+import { Game } from './game.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,7 +38,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       if (name === 'test') {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `Hello world ${new Deck().deck[0].suit.name}` },
+          data: { content: `Hello world ${Card.getSuitChoices()}` }, // new Game("Guess").gameKickOff() // new Deck().shuffleDeck().deck[0].suit.name
         });
       }
 
@@ -71,8 +72,8 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       // /guess
       if (name === 'guess') {
         const userId = body.member.user.id;
-        const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
-        const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+        const suitGuess = data.options.find(o => o.name === 'suit').value;
+        const valueGuess = data.options.find(o => o.name === 'value').value;
 
         if (!games.has(userId)) {
           const deck = new Deck();
@@ -82,8 +83,8 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
 
         const secretCard = games.get(userId);
         if (
-          suitGuess === secretCard.suit.toLowerCase() &&
-          valueGuess === secretCard.value.toUpperCase()
+          suitGuess === secretCard.suit &&
+          valueGuess === secretCard.value
         ) {
           games.delete(userId);
           return res.send({
@@ -92,7 +93,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
               content: `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`,
             },
           });
-        } else if (suitGuess === secretCard.suit.toLowerCase()) {
+        } else if (suitGuess === secretCard.suit) {
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {

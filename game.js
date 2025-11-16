@@ -5,28 +5,52 @@
 
 //
 // START: game.js update
-// import { getDeck } from './deck.js'; // ADD: function list
+import { Deck } from './deck.js'; // ADD: function list
+// END: getShuffledDeck
+
 //
 //
 // START: getShuffledDeck (removed from command)
-// Get the game choices from game.js
-// function createCommandChoices() {
-//   const choices = getRPSChoices();
-//   const commandChoices = [];
+export class Game {
+
+    constructor(game) {
+        this.game = game;
+        this.gameDeck = new Deck();
+    }
+
+    gameKickOff() {
+        if(this.game == "Guess") {
+            // console.log(this.gameDeck);
+            return this.gameDeck.draw(1);
+        }
+
+        // return this;
+    }
+
 //
-//   for (let choice of choices) {
-//     commandChoices.push({
-//       name: capitalize(choice),
-//       value: choice.toLowerCase(),
+// START: TEST challenge command
+// // Function to fetch shuffled options for select menu
+// export function getShuffledOptions() {
+//   const allChoices = getRPSChoices();
+//   const options = [];
+
+//   for (let c of allChoices) {
+//     // Formatted for select menus
+//     // https://discord.com/developers/docs/components/reference#string-select-select-option-structure
+//     options.push({
+//       label: capitalize(c),
+//       value: c.toLowerCase(),
+//       description: RPSChoices[c]['description'],
 //     });
 //   }
-//   return commandChoices;
+
+//   return options.sort(() => Math.random() - 0.5);
 // }
+// END: TEST challenge command
 //
-// function getShuffledDeck() {
-//      const deck = getDeck(); // deck responsible for card generation
-// }
-//
+}
+
+
 // END: getShuffledDeck
 // END: game.js update
 //
