@@ -5,27 +5,31 @@ export class Card {
   // but let's keep them in here for now.
   // Example call: suits.spade.name; returns 'Spade'
     static suits = {
-      spade: {
+      Spade: {
         name: 'Spade',
         namePlural: 'Spades',
+        lowercase: 'spade',
         unicodeBlack: 'U+2660',
         unicodeLine: 'U+2664',
       },
-      heart: {
+      Heart: {
         name: 'Heart',
         namePlural: 'Hearts',
+        lowercase: 'heart',
         unicodeBlack: 'U+2665',
         unicodeLine: 'U+2661',
       },
-      diamond: {
+      Diamond: {
         name: 'Diamond',
         namePlural: 'Diamonds',
+        lowercase: 'diamond',
         unicodeBlack: 'U+2666',
         unicodeLine: 'U+2662',
       },
-      club: {
+      Club: {
         name: 'Club',
         namePlural: 'Clubs',
+        lowercase: 'club',
         unicodeBlack: 'U+2663',
         unicodeLine: 'U+2667',
       },
@@ -77,15 +81,15 @@ export class Card {
         name: '10',
         value: 10,
       },
-      J: {
+      Jack: {
         name: 'Jack',
         value: 10,
       },
-      Q: {
+      Queen: {
         name: 'Queen',
         value: 10,
       },
-      K: {
+      King: {
         name: 'King',
         value: 10,
       },

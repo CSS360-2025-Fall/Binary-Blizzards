@@ -70,24 +70,37 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       }
 
       // /guess
-      if (name === 'guess') {
+      if (name === 'guess') { //&& id
+        //
+        // START: guess command new setup
+        const context = req.body.context;
+        // const userId = context === 0 ? req.body.member.user.id : req.body.user.id;
+
+        const suitChoice = req.body.data.options[0].value;
+        const rankChoice = req.body.data.options[1].value;
+        const game = new Game("Guess");
+        const result = game.guessingResult(suitChoice, rankChoice);
+        console.log(result);
+        // END: guess command new setup
+        //
+
         // const newDeck = new Deck();
         // console.log(newDeck.deck[0].suit.name);
-        const suitOptions = Card.getSuitChoices();
-        console.log(suitOptions);
+        // const suitOptions = Card.getSuitChoices();
+        // console.log(suitOptions);
 
-        return res.send({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: 'Choose suit: ',
-            components: [
-              {
-                type: 1,
-                components: [{ type: 3, custom_id: 'kick off', suitOptions }],
-              },
-            ],
-          },
-        });
+        // return res.send({
+        //   type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        //   data: {
+        //     content: 'Choose suit: ',
+        //     components: [
+        //       {
+        //         type: 1,
+        //         components: [{ type: 3, custom_id: 'kick off', suitOptions }],
+        //       },
+        //     ],
+        //   },
+        // });
 
         // const userId = body.member.user.id;
         // console.log(userId);

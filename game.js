@@ -16,38 +16,24 @@ export class Game {
     constructor(game) {
         this.game = game;
         this.gameDeck = new Deck();
+        this.guess = this.gameDeck.draw(1);// temp
     }
 
-    gameKickOff() {
-        if(this.game == "Guess") {
-            // console.log(this.gameDeck);
-            return this.gameDeck.draw(1);
+    // gameKickOff() {
+    //     if(this.game == "Guess") {
+    //         // console.log(this.gameDeck);
+    //         return this.gameDeck.draw(1);
+    //     }
+
+    //     // return this;
+    // }
+
+    guessingResult(suit, rank) {
+        if(suit == this.guess[0].suit.lowercase && rank.toString() == this.guess[0].rank.name) {
+            return true;
         }
-
-        // return this;
+        return false;
     }
-
-//
-// START: TEST challenge command
-// // Function to fetch shuffled options for select menu
-// export function getShuffledOptions() {
-//   const allChoices = getRPSChoices();
-//   const options = [];
-
-//   for (let c of allChoices) {
-//     // Formatted for select menus
-//     // https://discord.com/developers/docs/components/reference#string-select-select-option-structure
-//     options.push({
-//       label: capitalize(c),
-//       value: c.toLowerCase(),
-//       description: RPSChoices[c]['description'],
-//     });
-//   }
-
-//   return options.sort(() => Math.random() - 0.5);
-// }
-// END: TEST challenge command
-//
 }
 
 
