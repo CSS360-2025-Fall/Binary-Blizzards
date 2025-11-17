@@ -1,10 +1,8 @@
-/*
 import 'dotenv/config';
 import express from 'express';
 import {
   InteractionType,
   InteractionResponseType,
-  InteractionCallbackType,
   verifyKeyMiddleware,
 } from 'discord-interactions';
 import { getRandomEmoji } from './utils.js';
@@ -13,7 +11,58 @@ import { Deck } from './card.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 const games = new Map();
+
+const blackjackGames = new Map();
+
+
+function handValue(hand) {
+  let value = 0;
+  let aces = 0;
+
+  for (const card of hand) {
+    if (['J', 'Q', 'K'].includes(card.value)) {
+      value += 10;
+    } else if (card.value === 'A') {
+      value += 11;
+      aces++;
+    } else {
+      value += parseInt(card.value);
+    }
+  }
+
+  while (value > 21 && aces > 0) {
+    value -= 10;
+    aces--;
+  }
+
+  return value;
+}
+
+function suitEmoji(suit) {
+  const map = {
+    hearts: '♥',
+    diamonds: '♦',
+    clubs: '♣',
+    spades: '♠',
+  };
+  return map[suit];
+}
+
+function formatHand(hand) {
+  const suitMap = {
+    hearts: '♥ (hearts)',
+    diamonds: '♦ (diamonds)',
+    clubs: '♣ (clubs)',
+    spades: '♠ (spades)',
+  };
+  return hand
+    .map(c => `${c.value}${suitMap[c.suit]}`)
+    .join(', ');
+}
+
+
 
 app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (req, res) => {
   try {
@@ -21,16 +70,16 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
     const body = req.body;
     const { type, data } = body;
 
-    // ✅ PING check
+
     if (type === InteractionType.PING) {
       return res.send({ type: InteractionResponseType.PONG });
     }
 
-    // ✅ Slash command handling
+  
     if (type === InteractionType.APPLICATION_COMMAND) {
       const { name } = data;
 
-      // /test command
+      /*  /test  */
       if (name === 'test') {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -38,152 +87,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         });
       }
 
-      // /guess command
-      if (name === 'guess') {
-        const userId = body.member.user.id;
-        const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
-        const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
-
-        if (!games.has(userId)) {
-          const deck = new Deck();
-          const secretCard = deck.draw();
-          games.set(userId, secretCard);
-        }
-
-        const secretCard = games.get(userId);
-        let responseText;
-
-        if (
-          suitGuess === secretCard.suit.toLowerCase() &&
-          valueGuess === secretCard.value.toUpperCase()
-        ) {
-          games.delete(userId);
-          responseText = `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`;
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: { content: responseText },
-          });
-        } else {
-          // Generate hint if correct suit
-          if (suitGuess === secretCard.suit.toLowerCase()) {
-            responseText = `Hint: you got the correct suit of the card!`;
-          } else {
-            responseText = `❌ Nope! It wasn’t ${valueGuess} of ${suitGuess}. Try again!`;
-          }
-
-          // Provide action buttons for "make another guess" or "end game"
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: responseText,
-              components: [
-                {
-                  type: 1,
-                  components: [
-                    {
-                      type: 2,
-                      label: 'Make another guess',
-                      style: 1,
-                      custom_id: `guess_again_${userId}`,
-                    },
-                    {
-                      type: 2,
-                      label: 'End the game',
-                      style: 4,
-                      custom_id: `end_game_${userId}`,
-                    },
-                  ],
-                },
-              ],
-            },
-          });
-        }
-      }
-    }
-
-    // ✅ Component (button) interactions
-    if (type === InteractionType.MESSAGE_COMPONENT) {
-      const userId = body.member.user.id;
-      const customId = data.custom_id;
-      const secretCard = games.get(userId);
-
-      if (!secretCard) {
-        return res.send({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: 'No active game found! Use `/guess` to start a new one.' },
-        });
-      }
-
-      if (customId.startsWith('end_game_')) {
-        games.delete(userId);
-        return res.send({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: `🛑 Game ended. The secret card was **${secretCard.value} of ${secretCard.suit}**.`,
-          },
-        });
-      }
-
-      if (customId.startsWith('guess_again_')) {
-        return res.send({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: '🔁 Okay! Make another guess using `/guess`!',
-          },
-        });
-      }
-    }
-
-    res.status(400).send('Unknown interaction type');
-  } catch (err) {
-    console.error('❌ Error handling interaction:', err);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
-app.get('/', (_, res) => res.send('Bot is running!'));
-
-app.listen(PORT, () => console.log(`🚀 Listening on port ${PORT}`));
-
-*/
-import 'dotenv/config';
-import express from 'express';
-import {
-  InteractionType,
-  InteractionResponseType,
-  verifyKeyMiddleware,
-} from 'discord-interactions';
-import { getRandomEmoji } from './utils.js';
-import { getShuffledOptions } from './game.js';
-import { Deck } from './card.js';
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-const games = new Map();
-
-// ✅ Middleware (verifyKeyMiddleware handles raw body internally)
-app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (req, res) => {
-  try {
-    console.log('📥 Incoming Interaction');
-    const body = req.body; // Already parsed JSON object
-    const { type, data } = body;
-
-    if (type === InteractionType.PING) {
-      return res.send({ type: InteractionResponseType.PONG });
-    }
-
-    if (type === InteractionType.APPLICATION_COMMAND) {
-      const { name } = data;
-
-      // /test
-      if (name === 'test') {
-        return res.send({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `Hello world ${getRandomEmoji()}` },
-        });
-      }
-
-      // /challenge
+      /*  /challenge */
       if (name === 'challenge') {
         const options = getShuffledOptions();
         return res.send({
@@ -200,11 +104,65 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         });
       }
 
-      // /guess
+      /*  /rules  */
+      if (name === 'rules') {
+        const rulesText = 
+`Objective:
+
+Get a hand value closer to 21 than the dealer without going over.
+🂡 Card Values
+Number cards (2–10): face value
+J, Q, K: 10
+Ace (A): 11, but becomes 1 if 11 would cause the hand to bust
+
+🃏 Player Rules
+
+You start with two cards.
+After seeing your cards, you may choose:
+Hit → take another card
+Stand → stop taking cards
+You may continue hitting as long as your total does not exceed 21.
+If your total goes over 21, you bust and immediately lose.
+
+🏦 Dealer Rules
+
+The dealer also starts with two cards, but only one is shown.
+The dealer must draw cards until the hand total is 17 or higher.
+The dealer cannot choose to stop early
+If the dealer exceeds 21, the dealer busts and you automatically win.
+
+🏁 Winning the Game
+
+After both you and the dealer have finished:
+If you bust → Dealer wins
+If the dealer busts → You win
+
+Otherwise:
+
+Higher total wins
+Equal totals → Tie (Push)`;
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: rulesText },
+        });
+      }
+
+      /*  /guess  */
       if (name === 'guess') {
         const userId = body.member.user.id;
         const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
         const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+
+        const validSuits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const validValues = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+        if (!validSuits.includes(suitGuess) || !validValues.includes(valueGuess)) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: '❌ Invalid card input! Try again.' }
+          });
+        }
 
         if (!games.has(userId)) {
           const deck = new Deck();
@@ -213,38 +171,172 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         }
 
         const secretCard = games.get(userId);
-        if (
-          suitGuess === secretCard.suit.toLowerCase() &&
-          valueGuess === secretCard.value.toUpperCase()
-        ) {
+
+        if (suitGuess === secretCard.suit.toLowerCase() &&
+            valueGuess === secretCard.value.toUpperCase()) 
+        {
           games.delete(userId);
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`,
-            },
+            data: { content: `🎉 Correct! It was **${secretCard.value} of ${secretCard.suit}**.` },
           });
-        } else {
+        }
+
+        if (suitGuess === secretCard.suit.toLowerCase()) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: `✔ Correct suit, but wrong value.` },
+          });
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `❌ Wrong guess. Try again!` },
+        });
+      }
+
+      /* 
+         /bj start 
+       */
+      if (name === 'bj') {
+        const sub = data.options[0].name;
+        if (sub === 'start') {
+          const userId = body.member.user.id;
+
+          const deck = new Deck();
+          const player = [deck.draw(), deck.draw()];
+          const dealer = [deck.draw(), deck.draw()];
+
+          blackjackGames.set(userId, {
+            deck,
+            player,
+            dealer
+          });
+
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
-              content: `❌ Nope! It wasn’t ${valueGuess} of ${suitGuess}. Try again!`,
-            },
+              content:
+`🎰 **Blackjack Started!**
+
+Dealer shows: ${dealer[0].value}${suitEmoji(dealer[0].suit)}
+Your hand: ${formatHand(player)} (value ${handValue(player)})
+
+Hit or Stand?`,
+              components: [
+                {
+                  type: 1,
+                  components: [
+                    { type: 2, style: 1, label: "Hit", custom_id: "bj_hit" },
+                    { type: 2, style: 4, label: "Stand", custom_id: "bj_stand" }
+                  ]
+                }
+              ]
+            }
           });
         }
       }
     }
 
-    res.status(400).send('Unknown interaction type');
+    /* 
+       BUTTON INTERACTIONS (Hit / Stand)
+    */
+
+    if (type === InteractionType.MESSAGE_COMPONENT) {
+      const userId = body.member.user.id;
+      const customId = data.custom_id;
+      const game = blackjackGames.get(userId);
+
+      if (!game) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: "No active Blackjack game! Use `/bj start`." }
+        });
+      }
+
+      /* HIT */
+      if (customId === "bj_hit") {
+        game.player.push(game.deck.draw());
+        const pVal = handValue(game.player);
+
+        if (pVal > 21) {
+          blackjackGames.delete(userId);
+          return res.send({
+            type: 7,
+            data: {
+              content:
+`💥 **Busted!**
+Your hand: ${formatHand(game.player)} (${pVal})
+Dealer wins.`,
+              components: []
+            }
+          });
+        }
+
+        return res.send({
+          type: 7,
+          data: {
+            content:
+`🎰 **Blackjack**
+Dealer shows: ${game.dealer[0].value}${game.dealer[0].suit[0]}
+Your hand: ${formatHand(game.player)} (${pVal})
+Hit or Stand?`,
+            components: [
+              {
+                type: 1,
+                components: [
+                  { type: 2, style: 1, label: "Hit", custom_id: "bj_hit" },
+                  { type: 2, style: 4, label: "Stand", custom_id: "bj_stand" }
+                ]
+              }
+            ]
+          }
+        });
+      }
+
+      /* STAND */
+      if (customId === "bj_stand") {
+        let dVal = handValue(game.dealer);
+
+        while (dVal < 17) {
+          game.dealer.push(game.deck.draw());
+          dVal = handValue(game.dealer);
+        }
+
+        const pVal = handValue(game.player);
+
+        let result = "";
+        if (dVal > 21) result = "Dealer busts! **You win! 🎉**";
+        else if (pVal > dVal) result = "**You win! 🎉**";
+        else if (pVal < dVal) result = "**Dealer wins. 😭**";
+        else result = "**Push (tie). 🤝**";
+
+        blackjackGames.delete(userId);
+
+        return res.send({
+          type: 7,
+          data: {
+            content:
+`🎰 **Final Results**
+
+Dealer: ${formatHand(game.dealer)} (${dVal})
+Player: ${formatHand(game.player)} (${pVal})
+
+${result}`,
+            components: []
+          }
+        });
+      }
+    }
+
+    res.status(400).send('Unknown interaction');
   } catch (err) {
     console.error('❌ Error handling interaction:', err);
     res.status(500).send('Internal Server Error');
   }
 });
 
-// Health check
-app.get('/', (_, res) => res.send('Bot is running!'));
 
-app.listen(PORT, () => {
-  console.log(`🚀 Listening on port ${PORT}`);
-});
+
+app.get('/', (_, res) => res.send('Bot is running!'));
+app.listen(PORT, () => console.log(`🚀 Listening on port ${PORT}`));

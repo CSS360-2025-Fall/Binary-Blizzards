@@ -21,6 +21,21 @@
     "express": "^4.18.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "eslint": "^9.38.0",
+    "globals": "^16.4.0",
     "nodemon": "^3.0.0"
-  }
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CSS360-2025-Fall/discord-example-app.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/CSS360-2025-Fall/discord-example-app/issues"
+  },
+  "homepage": "https://github.com/CSS360-2025-Fall/discord-example-app#readme"
 }
