@@ -113,7 +113,7 @@ export class Card {
 
     for(let suit in Card.suits) {
       let currentSuit = Card.suits[suit];
-      for(let rank in Card.ranks) { // FIX: Assumes game is blackjack for now.
+      for(let rank in Card.ranks) {
         let currentRank = Card.ranks[rank];
         let currentCard = new Card(currentSuit,  currentRank);
         cardStack.push(currentCard);
@@ -127,9 +127,9 @@ export class Card {
     return Object.keys(Card.suits);
   }
 
-  //getRankChoices() {
-  //return Object.keys(Card.ranks);
-  //}
+  static getRankChoices() {
+    return Object.keys(Card.ranks);
+  }
 
   toString() {
     return `${this.rank.name} of ${this.suit.name} with ${this.rank.value}.`;

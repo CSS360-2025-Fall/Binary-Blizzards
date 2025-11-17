@@ -23,71 +23,33 @@ const TEST_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-// function createCommandChoices() {
-//   const choices = getRPSChoices();
-//   const commandChoices = [];
+function createSuitSelection() {
+  const suits = Card.getSuitChoices();
+  const suitChoices = [];
 
-//   for (let choice of choices) {
-//     commandChoices.push({
-//       name: capitalize(choice),
-//       value: choice.toLowerCase(),
-//     });
-//   }
-// }
+  for (let suit of suits) {
+    suitChoices.push({
+      name: capitalize(suit),
+      value: suit.toLowerCase(),
+    });
+  }
 
-//
-// START: TEST createCommandChoice for deck
-// function createCommandChoices() {
-//   const choices = getRPSChoices();
-//   const commandChoices = [];
+  return suitChoices;
+}
 
-//   for (let choice of choices) {
-//     commandChoices.push({
-//       name: capitalize(choice),
-//       value: choice.toLowerCase(),
-//     });
-//   }
-// }
-// END: TEST createCommandChoice for deck
-//
+function createRankSelection() {
+  const ranks = Card.getRankChoices();
+  const rankChoices = [];
 
-//
-// START: TEST new challenge command
-// const CHALLENGE_COMMAND = {
-//   name: 'challenge',
-//   description: 'Challenge to a match of rock paper scissors',
-//   options: [
-//     {
-//       type: 3,
-//       name: 'object',
-//       description: 'Pick your object',
-//       required: true,
-//       choices: createCommandChoices(),
-//     },
-//   ],
-//   type: 1,
-//   integration_types: [0, 1],
-//   contexts: [0, 2],
-// };
-// END: TEST new challenge
-//
+  for (let rank of ranks) {
+    rankChoices.push({
+      name: capitalize(rank),
+      value: rank.toLowerCase(),
+    });
+  }
 
-// const CHALLENGE_COMMAND = {
-//   name: 'challenge',
-//   description: 'Challenge to a match of rock paper scissors',
-//   options: [
-//     {
-//       type: 3,
-//       name: 'object',
-//       description: 'Pick your object',
-//       required: true,
-//       choices: createCommandChoices(),
-//     },
-//   ],
-//   type: 1,
-//   integration_types: [0, 1],
-//   contexts: [0, 2],
-// };
+  return rankChoices;
+}
 
 // Card guessing command
 const GUESS_COMMAND = {
@@ -97,15 +59,16 @@ const GUESS_COMMAND = {
     {
       type: 3,
       name: 'suit',
-      description: 'Enter the card suit (hearts, spades, clubs, diamonds)',
+      description: 'Select suit from menu: ',
       required: true,
-      // choices: Card.getSuitChoices(),
+      choices: createSuitSelection(),
     },
     {
       type: 3,
-      name: 'value',
-      description: 'Enter the card value (A, 2–10, J, Q, K)',
+      name: 'rank',
+      description: 'Select rank from menu: ',
       required: true,
+      choices: createRankSelection(),
     },
   ],
   type: 1,
@@ -123,6 +86,6 @@ const RULES_COMMAND = {
 };
 
 
-const ALL_COMMANDS = [TEST_COMMAND, GUESS_COMMAND, RULES_COMMAND]; //CHALLENGE_COMMAND,
+const ALL_COMMANDS = [TEST_COMMAND, GUESS_COMMAND, RULES_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

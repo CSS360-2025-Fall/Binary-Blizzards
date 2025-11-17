@@ -71,45 +71,64 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
 
       // /guess
       if (name === 'guess') {
-        const userId = body.member.user.id;
-        const suitGuess = data.options.find(o => o.name === 'suit').value;
-        const valueGuess = data.options.find(o => o.name === 'value').value;
+        // const newDeck = new Deck();
+        // console.log(newDeck.deck[0].suit.name);
+        const suitOptions = Card.getSuitChoices();
+        console.log(suitOptions);
 
-        if (!games.has(userId)) {
-          const deck = new Deck();
-          const secretCard = deck.draw();
-          games.set(userId, secretCard);
-        }
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'Choose suit: ',
+            components: [
+              {
+                type: 1,
+                components: [{ type: 3, custom_id: 'kick off', suitOptions }],
+              },
+            ],
+          },
+        });
 
-        const secretCard = games.get(userId);
-        if (
-          suitGuess === secretCard.suit &&
-          valueGuess === secretCard.value
-        ) {
-          games.delete(userId);
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`,
-            },
-          });
-        } else if (suitGuess === secretCard.suit) {
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: `❌ Nope! ${capitalize(suitGuess)} was the correct suit but ${valueGuess} was not the correct value. Try again!`,
-            },
-          });
-        }
+        // const userId = body.member.user.id;
+        // console.log(userId);
+        // const suitGuess = data.options.find(o => o.name === 'suit').value;
+        // const valueGuess = data.options.find(o => o.name === 'value').value;
+
+        // if (!games.has(userId)) {
+        //   const deck = new Deck();
+        //   const secretCard = deck.draw();
+        //   games.set(userId, secretCard);
+        // }
+
+        // const secretCard = games.get(userId);
+        // if (
+        //   suitGuess === secretCard.suit &&
+        //   valueGuess === secretCard.value
+        // ) {
+        //   games.delete(userId);
+        //   return res.send({
+        //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        //     data: {
+        //       content: `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`,
+        //     },
+        //   });
+        // } else if (suitGuess === secretCard.suit) {
+        //   return res.send({
+        //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        //     data: {
+        //       content: `❌ Nope! ${capitalize(suitGuess)} was the correct suit but ${valueGuess} was not the correct value. Try again!`,
+        //     },
+        //   });
+        // }
           
-        else {
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: `❌ Nope! It wasn’t ${valueGuess} of ${suitGuess}. Try again!`,
-            },
-          });
-        }
+        // else {
+        //   return res.send({
+        //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        //     data: {
+        //       content: `❌ Nope! It wasn’t ${valueGuess} of ${suitGuess}. Try again!`,
+        //     },
+        //   });
+        // }
       }
     }
 
