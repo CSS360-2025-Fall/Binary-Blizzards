@@ -201,12 +201,22 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       }
 
       // /rules
-      if (name === 'rules') {
-        const rulesText = `Guess the Card rules:\n\n- I pick a secret card from a standard 52-card deck.\n- You guess by providing a suit (hearts, spades, clubs, diamonds) and a value (A, 2-10, J, Q, K).\n- If both suit and value match, you win and the game ends.\n- If only the suit is correct, I'll tell you it's the correct suit as a hint.\n- Otherwise I'll tell you the guess was incorrect and you can try again.\n- Use /guess to make a guess. Good luck!`;
+      if (name === 'info') {
+        const infoText =
+        "🎴 **Guess the Card**\n" +
+        "A fast, simple card-guessing game.\n" +
+        "I secretly draw one card from a fresh deck.\n" +
+        "You guess the *suit* and *value*.\n" +
+        "I'll tell you if you got the suit right, the value right, or both wrong.\n" +
+        "Keep guessing until you find the hidden card!\n\n" +
+
+        "🃏 **Blackjack** (Coming Soon!)\n" +
+        "A classic 21 game built right into the bot.\n" +
+        "Draw cards, hit or stand, and try to beat the dealer.\n";
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: rulesText },
+          data: { content: infoText },
         });
       }
 
