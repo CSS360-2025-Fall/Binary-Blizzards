@@ -16,7 +16,7 @@ export class Game {
     constructor(game) {
         this.game = game;
         this.gameDeck = new Deck();
-        this.guess = this.gameDeck.draw(1);// temp
+        this.winningCard = this.gameDeck.draw(1);// temp
     }
 
     // gameKickOff() {
@@ -29,7 +29,7 @@ export class Game {
     // }
 
     guessingResult(suit, rank) {
-        if(suit == this.guess[0].suit.lowercase && rank.toString() == this.guess[0].rank.name) {
+        if(suit == this.winningCard[0].suit.lowercase && rank.toString() == this.winningCard[0].rank.name) {
             return true;
         }
         return false;

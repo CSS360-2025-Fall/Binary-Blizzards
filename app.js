@@ -8,6 +8,7 @@ import express from 'express';
 import {
   InteractionType,
   InteractionResponseType,
+  MessageComponentTypes,
   verifyKeyMiddleware,
 } from 'discord-interactions';
 import { getRandomEmoji, capitalize } from './utils.js';
@@ -15,17 +16,18 @@ import { getRandomEmoji, capitalize } from './utils.js';
 import { Card } from './card.js';
 import { Deck } from './deck.js';
 import { Game } from './game.js';
+import { DiscordRequest } from './utils.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const games = new Map();
+const currentGames = new Map();
 
 // ✅ Middleware (verifyKeyMiddleware handles raw body internally)
 app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (req, res) => {
   try {
     console.log('📥 Incoming Interaction');
     const body = req.body; // Already parsed JSON object
-    const { type, data } = body;
+    const { type, id, data } = body;
 
     if (type === InteractionType.PING) {
       return res.send({ type: InteractionResponseType.PONG });
@@ -70,78 +72,23 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       }
 
       // /guess
-      if (name === 'guess') { //&& id
-        //
-        // START: guess command new setup
+      if (name === 'guess' && id) {
         const context = req.body.context;
-        // const userId = context === 0 ? req.body.member.user.id : req.body.user.id;
-
+        const userId = context === 0 ? req.body.member.user.id : req.body.user.id;
+        // console.log(userId);
         const suitChoice = req.body.data.options[0].value;
         const rankChoice = req.body.data.options[1].value;
-        const game = new Game("Guess");
-        const result = game.guessingResult(suitChoice, rankChoice);
-        console.log(result);
-        // END: guess command new setup
-        //
+        const currentGame = new Game('guess');
 
-        // const newDeck = new Deck();
-        // console.log(newDeck.deck[0].suit.name);
-        // const suitOptions = Card.getSuitChoices();
-        // console.log(suitOptions);
+        currentGames[id] = {
+          id: userId,
+          suit: suitChoice,
+          rank: rankChoice,
+          game: currentGame,
+        }
+        console.log(currentGames[id].game.winningCard);
 
-        // return res.send({
-        //   type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        //   data: {
-        //     content: 'Choose suit: ',
-        //     components: [
-        //       {
-        //         type: 1,
-        //         components: [{ type: 3, custom_id: 'kick off', suitOptions }],
-        //       },
-        //     ],
-        //   },
-        // });
 
-        // const userId = body.member.user.id;
-        // console.log(userId);
-        // const suitGuess = data.options.find(o => o.name === 'suit').value;
-        // const valueGuess = data.options.find(o => o.name === 'value').value;
-
-        // if (!games.has(userId)) {
-        //   const deck = new Deck();
-        //   const secretCard = deck.draw();
-        //   games.set(userId, secretCard);
-        // }
-
-        // const secretCard = games.get(userId);
-        // if (
-        //   suitGuess === secretCard.suit &&
-        //   valueGuess === secretCard.value
-        // ) {
-        //   games.delete(userId);
-        //   return res.send({
-        //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        //     data: {
-        //       content: `🎉 You got it! It was **${secretCard.value} of ${secretCard.suit}**.`,
-        //     },
-        //   });
-        // } else if (suitGuess === secretCard.suit) {
-        //   return res.send({
-        //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        //     data: {
-        //       content: `❌ Nope! ${capitalize(suitGuess)} was the correct suit but ${valueGuess} was not the correct value. Try again!`,
-        //     },
-        //   });
-        // }
-          
-        // else {
-        //   return res.send({
-        //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        //     data: {
-        //       content: `❌ Nope! It wasn’t ${valueGuess} of ${suitGuess}. Try again!`,
-        //     },
-        //   });
-        // }
       }
     }
 
