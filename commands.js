@@ -69,15 +69,30 @@ const GUESS_COMMAND = {
 };
 
 
-const INFO_COMMAND = {
-  name: 'info',
-  description: 'Info of avalible card games',
+const RULES_COMMAND = {
+  name: 'rules',
+  description: 'Show the rules for the Black Jack Card game',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+const BJ_COMMAND = {
+  name: 'bj',
+  description: 'Play a simple Blackjack game',
+  options: [
+    {
+      type: 1,
+      name: 'start',
+      description: 'Start a Blackjack game',
+    }
+  ],
   type: 1,
   integration_types: [0, 1],
   contexts: [0, 2],
 };
 
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, INFO_COMMAND];
+const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
