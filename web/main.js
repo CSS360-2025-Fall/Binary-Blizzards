@@ -75,7 +75,189 @@ class Deck {
     }
 }
 
-// --- 2. MAIN INITIALIZATION AND EVENT LISTENERS ---
+
+// --- 2. BLACKJACK GAME LOGIC ---
+
+let bjGame = null;
+
+// Calculates the value of a hand, handling Ace (1 or 11)
+function handValue(hand) {
+    let value = 0;
+    let aces = 0;
+
+    for (const card of hand) {
+        // Special case: The Card class stores rank/value. We need to use rank for BJ logic
+        let cardValue = card.rank;
+
+        if (['J', 'Q', 'K'].includes(cardValue)) {
+            value += 10;
+        } else if (cardValue === 'A') {
+            value += 11;
+            aces++;
+        } else {
+            value += parseInt(cardValue);
+        }
+    }
+
+    // Convert Ace from 11 to 1 if the hand busts
+    while (value > 21 && aces > 0) {
+        value -= 10;
+        aces--;
+    }
+
+    return value;
+}
+
+// Helper to format a card for display
+function formatCard(card, isHidden = false) {
+    if (isHidden) return '??';
+    const suitMap = {
+        Spades: '♠',
+        Hearts: '♥',
+        Diamonds: '♦',
+        Clubs: '♣',
+    };
+    return `<span class="card-icon">${card.rank}${suitMap[card.suit]}</span>`;
+}
+
+// Helper to format an entire hand
+function formatHand(hand, hideDealerCard = false) {
+    return hand.map((card, index) => {
+        // Hide the dealer's second card if hideDealerCard is true
+        return formatCard(card, hideDealerCard && index === 1);
+    }).join(' ');
+}
+
+
+// --- Blackjack Game Flow Functions ---
+
+window.startGame = function() {
+    // Re-use the existing main deck for simplicity in the utility
+    if (deck.cards.length < 52) {
+      deck.newDeck();
+    }
+    deck.shuffleDeck();
+    
+    // Deal initial hands
+    const playerHand = [deck.drawCard(), deck.drawCard()];
+    const dealerHand = [deck.drawCard(), deck.drawCard()];
+    
+    // Ensure both initial hands were dealt
+    if (!playerHand[0] || !dealerHand[0]) {
+      alert("Error: Deck is too small to start a game. Shuffling now.");
+      deck.newDeck();
+      return;
+    }
+
+    bjGame = { deck, playerHand, dealerHand };
+
+    // Update the main deck display since cards were drawn
+    updateDeckDisplay();
+    updateBlackjackUI('start');
+}
+
+window.playerHit = function() {
+    if (!bjGame) return;
+    
+    const newCard = bjGame.deck.drawCard();
+    if (!newCard) {
+      alert("Deck ran out of cards! Ending game.");
+      endGame("Deck empty. Game over.");
+      return;
+    }
+
+    bjGame.playerHand.push(newCard);
+    const pVal = handValue(bjGame.playerHand);
+    
+    updateDeckDisplay();
+
+    if (pVal > 21) {
+        // Player busts
+        endGame("Bust! Dealer Wins. 💥");
+    } else {
+        updateBlackjackUI('hit');
+    }
+}
+
+window.playerStand = function() {
+    if (!bjGame) return;
+    
+    // Dealer's turn logic
+    let dVal = handValue(bjGame.dealerHand);
+    
+    // Dealer must draw until total is 17 or higher
+    while (dVal < 17) {
+        const newCard = bjGame.deck.drawCard();
+        if (!newCard) break; // Stop if deck runs out
+        
+        bjGame.dealerHand.push(newCard);
+        dVal = handValue(bjGame.dealerHand);
+    }
+    
+    updateDeckDisplay();
+
+    const pVal = handValue(bjGame.playerHand);
+    let result = "";
+
+    if (pVal > 21) {
+        result = "Player busted. Dealer Wins. 💥";
+    } else if (dVal > 21) {
+        result = "Dealer busts! You Win! 🎉";
+    } else if (pVal > dVal) {
+        result = "You Win! 🎉";
+    } else if (pVal < dVal) {
+        result = "Dealer Wins. 😭";
+    } else {
+        result = "Push (Tie). 🤝";
+    }
+
+    endGame(result);
+}
+
+// --- UI Update Functions ---
+
+// Get new DOM elements for Blackjack
+const dealerHandEl = document.getElementById('dealerHand');
+const playerHandEl = document.getElementById('playerHand');
+const messageEl = document.getElementById('bjMessage');
+const controlsEl = document.getElementById('bjControls');
+
+function updateBlackjackUI(action) {
+    if (!bjGame) return;
+
+    const pVal = handValue(bjGame.playerHand);
+
+    // Initial state or after a 'Hit'
+    dealerHandEl.innerHTML = `Dealer Hand: ${formatCard(bjGame.dealerHand[0])} <span class="hidden-card-text">(One hidden card)</span>`;
+    playerHandEl.innerHTML = `Player Hand: ${formatHand(bjGame.playerHand)} (Value: **${pVal}**)`;
+
+    messageEl.textContent = "Hit or Stand?";
+    controlsEl.innerHTML = `
+        <button onclick="playerHit()">Hit</button> 
+        <button onclick="playerStand()">Stand</button>
+    `;
+}
+
+function endGame(resultMessage) {
+    if (!bjGame) return;
+
+    const pVal = handValue(bjGame.playerHand);
+    const dVal = handValue(bjGame.dealerHand);
+
+    // Show all cards and final values
+    dealerHandEl.innerHTML = `Dealer Hand: ${formatHand(bjGame.dealerHand)} (Value: **${dVal}**)`;
+    playerHandEl.innerHTML = `Player Hand: ${formatHand(bjGame.playerHand)} (Value: **${pVal}**)`;
+    
+    messageEl.textContent = `FINAL RESULT: ${resultMessage}`;
+    
+    // Replace Hit/Stand with a Start button
+    controlsEl.innerHTML = `<button onclick="startGame()">Start Blackjack</button>`;
+    
+    bjGame = null; // Clear game state
+}
+
+
+// --- 3. MAIN INITIALIZATION AND EVENT LISTENERS (Existing Code) ---
 
 // Card Deck Initialization and DOM elements
 const deck = new Deck();
@@ -93,11 +275,14 @@ function updateDeckDisplay() {
 shuffleButton.addEventListener('click', () => {
   deck.newDeck();
   drawnCardSpan.textContent = 'Deck shuffled! Draw a card.';
+  // Also clear any previous BJ game state on shuffle
+  if (bjGame) endGame("Game Reset by Shuffle.");
   updateDeckDisplay();
 });
 
 // Single card draw listener
 drawButton.addEventListener('click', () => {
+  if (bjGame) endGame("Game Reset by Card Draw.");
   const card = deck.drawCard();
   if (card) {
     drawnCardSpan.textContent = `Drew 1 card: ${card.toString()}`;
@@ -109,6 +294,8 @@ drawButton.addEventListener('click', () => {
 
 // Multi-card draw listener
 multiDrawButton.addEventListener('click', () => {
+    if (bjGame) endGame("Game Reset by Card Draw.");
+
     const count = parseInt(drawCountInput.value, 10);
     
     // Input validation
@@ -134,4 +321,3 @@ multiDrawButton.addEventListener('click', () => {
 
 // Initial display setup
 updateDeckDisplay();
-```eof
