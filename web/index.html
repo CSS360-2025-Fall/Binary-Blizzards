@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Binary Blizzard Deck Utility</title>
+    <link href="style.css" rel="stylesheet"> 
+</head>
+<body>
+
+    <div id="content">
+        <h1>The Binary Blizzard Deck Utility</h1>
+        
+          <img src="card1.png" alt="A sample card from the deck" width="200" height="200">
+        
+        <div id="about-section" class="game-section">
+            <h2>About the Utility</h2>
+            <p>
+                This web application demonstrates the core **Deck.js** class developed for the Binary Blizzards Bot. It provides a robust, browser-based simulation of card generation, shuffling, and drawing.
+            </p>
+            <p>
+                The utility features a standard **52-card deck** including the suits Spades, Hearts, Diamonds, and Clubs.
+            </p>
+        </div>
+        
+        <div id="instructions-section" class="game-section">
+            <h2>How to Use It (Instructions)</h2>
+            <p>
+                The deck is automatically **shuffled** on load. Use the controls below to interact with the deck's logic:
+            </p>
+            <ul>
+                <li>Click **"Shuffle Deck"** to reset the deck to 52 cards and randomize their order.</li>
+                <li>Use the **"Draw Multiple Cards"** section to draw more than one card at a time.</li>
+                <li>Click **"Draw Single Card"** to take and display a single card from the top of the deck.</li>
+            </ul>
+        </div>
+
+        <div id="card-game" class="game-section">
+            <h2>Simulator (Play)</h2>
+            
+            <div class="card-deck-buttons">
+                <button id="shuffle-deck">Shuffle Deck / New Game</button>
+                <button id="draw-card">Draw Single Card</button>
+            </div>
+            
+            <div class="multi-draw-controls">
+                <input type="number" id="draw-count" min="1" max="52" placeholder="Cards to draw" value="5">
+                <button id="multi-draw-button">Draw Multiple Cards</button>
+            </div>
+            
+            <h3>Status:</h3>
+            <p>
+                **Cards Remaining:** <span id="cards-remaining">0</span><br>
+                <strong>Drawn Cards:</strong> <span id="drawn-card">Hit "Shuffle" or "Draw" to interact!</span>
+            </p>
+        </div>
+
+        <hr class="separator">
+
+        <div id="blackjack-game" class="game-section">
+            <h2>🃏 Blackjack (21)</h2>
+            <p>Play a round of 21 against the dealer using the same card deck logic.</p>
+
+            <div id="dealerHand" class="hand-display">Dealer Hand: -</div>
+            <div id="playerHand" class="hand-display">Player Hand: -</div>
+            <div id="bjMessage" class="bj-message">Ready to Play!</div>
+            
+            <div id="bjControls" class="bj-controls">
+                <button onclick="startGame()">Start Blackjack</button>
+            </div>
+        </div>
+
+        <div id="technical-footer">
+            <p style="font-size: 14px;">
+                *Technical Note: This project was implemented with help from AI tools.*
+            </p>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
+```eof
