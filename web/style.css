@@ -99,7 +99,7 @@ img {
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Button Styling (applied to both single and multi-draw buttons) */
+/* Button Styling (applied to existing buttons) */
 .card-deck-buttons button,
 .multi-draw-controls button {
     font-size: 20px;
@@ -155,4 +155,69 @@ img {
     font-style: italic;
     color: #444;
 }
-```eof
+
+/* --- NEW BLACKJACK STYLES --- */
+
+.separator {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), #00838F, rgba(0, 0, 0, 0));
+    margin: 30px 0;
+}
+
+/* Styling for the hands and message */
+.hand-display {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 1px dashed #B2EBF2;
+}
+
+.bj-message {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 15px 0;
+    color: #D32F2F; /* Red for results/status */
+}
+
+/* Container for Blackjack control buttons */
+.bj-controls {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+/* Apply existing button styles to BJ controls */
+.bj-controls button {
+    font-size: 18px;
+    padding: 12px 25px;
+    /* Inherits all other styling from the general button rules */
+}
+
+/* Card Icons for the hands */
+.card-icon {
+    font-family: Arial, sans-serif; 
+    font-size: 22px;
+    padding: 0 4px;
+    font-weight: bold;
+}
+
+/* Color codes for suits */
+.card-icon:contains('♥'), 
+.card-icon:contains('♦') {
+    color: #D32F2F; /* Red suits */
+}
+
+.card-icon:contains('♠'), 
+.card-icon:contains('♣') {
+    color: #1A237E; /* Dark blue/black suits */
+}
+
+.hidden-card-text {
+    font-style: italic;
+    color: #666;
+    font-size: 16px;
+    margin-left: 5px;
+}
