@@ -107,7 +107,19 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       /*  /rules  */
       if (name === 'rules') {
         const rulesText = 
-`Objective:
+`
+Rules for the guessing game:
+
+🎴Guess the Card
+A fast, simple card-guessing game.
+I secretly draw one card from a fresh deck.
+You guess the *suit* and *value*
+I'll tell you if you got the suit right, the value right, or both wrong.
+Keep guessing until you find the hidden card!
+
+Rules for BlackJack game:
+
+Objective:
 
 Get a hand value closer to 21 than the dealer without going over.
 🂡 Card Values
