@@ -102,6 +102,14 @@ const BJ_COMMAND = {
       type: 1,
       name: 'start',
       description: 'Start a Blackjack game',
+      options: [
+        {
+          type: 4, // integer
+          name: 'bet',
+          description: 'Amount to bet',
+          required: false,
+        }
+      ]
     }
   ],
   type: 1,
