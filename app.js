@@ -8,6 +8,27 @@ import {
 import { getRandomEmoji } from './utils.js';
 import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
+import fs from 'fs';
+import path from 'path';
+
+const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
+
+function readBalances() {
+  try {
+    const raw = fs.readFileSync(BALANCE_FILE, 'utf8');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function writeBalances(data) {
+  try {
+    fs.writeFileSync(BALANCE_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error('Failed to write balances:', e);
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -207,6 +228,50 @@ Equal totals → Tie (Push)`;
         });
       }
 
+
+      
+      /*  /balance  */
+      if (name === 'balance') {
+        const userId = body.member.user.id;
+        const balances = readBalances();
+        const user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `💰 Your balance: ${user.balance}` },
+        });
+      }
+
+      /*  /daily  */
+      if (name === 'daily') {
+        const userId = body.member.user.id;
+        const balances = readBalances();
+        const now = Date.now();
+        const DAY = 24 * 60 * 60 * 1000;
+        let user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+        if (now - (user.lastDaily || 0) < DAY) {
+          const remaining = DAY - (now - (user.lastDaily || 0));
+          const hours = Math.floor(remaining / 3600000);
+          const minutes = Math.floor((remaining % 3600000) / 60000);
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: `❌ Daily already claimed. Try again in ${hours}h ${minutes}m.` },
+          });
+        }
+
+        const AMOUNT = 100;
+        user.balance = (user.balance || 0) + AMOUNT;
+        user.lastDaily = now;
+        balances[userId] = user;
+        writeBalances(balances);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `✅ You claimed ${AMOUNT} coins. New balance: ${user.balance}` },
+        });
+      }
+      
       /* 
          /bj start 
        */
