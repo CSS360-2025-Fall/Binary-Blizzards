@@ -1,4 +1,3 @@
-/*
 import 'dotenv/config';
 import express from 'express';
 import {
@@ -291,7 +290,7 @@ Dealer wins.`,
           data: {
             content:
 `🎰 **Blackjack**
-Dealer shows: ${game.dealer[0].value}${game.dealer[0].suit[0]}
+Dealer shows: ${game.dealer[0].value}${suitEmoji(game.dealer[0].suit)}
 Your hand: ${formatHand(game.player)} (${pVal})
 Hit or Stand?`,
             components: [
