@@ -1,26 +1,31 @@
 // main.js
 
-// --- 1. ADAPTED LOGIC from Deck.js (Card Deck) ---
+// --- 1. CARD DECK LOGIC ---
 
-// Simple Card class
+/**
+ * Represents a single playing card.
+ */
 class Card {
     constructor(suit, rank, value) {
         this.suit = suit;
         this.rank = rank;
         this.value = value;
     }
-    // Shows rank, suit, and corrected value
+    // Returns the card name (e.g., "A of Spades")
     toString() {
-        return `${this.rank} of ${this.suit} (Value: ${this.value})`;
+        return `${this.rank} of ${this.suit}`;
     }
 }
 
+/**
+ * Represents a standard 52-card deck with shuffling and drawing capabilities.
+ */
 class Deck {
     constructor() {
         this.suits = ["Spades", "Hearts", "Diamonds", "Clubs"];
         this.ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-        // Standard card values: A=1, 2-9=face value, 10/J/Q/K = 10
-        this.values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]; 
+        // Initial values: A=11 (handled dynamically in BJ), 2-9=face, 10/J/Q/K=10
+        this.values = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]; 
         this.cards = [];
         this.newDeck();
     }
@@ -30,275 +35,332 @@ class Deck {
         this.cards = [];
         for (let i = 0; i < this.suits.length; i++) {
             for (let j = 0; j < this.ranks.length; j++) {
-                // j is the index for both rank and the fixed value
                 this.cards.push(new Card(this.suits[i], this.ranks[j], this.values[j]));
             }
         }
     }
-    
-    // Shuffles deck (Fisher-Yates algorithm)
-    shuffleDeck() {
+
+    // Shuffles the cards using the Fisher-Yates algorithm
+    shuffle() {
         for (let i = this.cards.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
     }
-    
-    /**
-     * Draws a single card from the top of the deck.
-     * @returns {Card | null}
-     */
-    drawCard() {
-        if (this.cards.length === 0) return null;
-        return this.cards.pop();
+
+    // Creates and shuffles a new deck
+    newDeck() {
+        this.createDeck();
+        this.shuffle();
     }
 
-    /**
-     * Draws a specified number of cards from the top of the deck.
-     * @param {number} count The number of cards to draw.
-     * @returns {Card[]} An array of drawn cards.
-     */
-    drawCards(count = 1) {
+    // Draws the top card from the deck
+    drawCard() {
+        return this.cards.pop();
+    }
+    
+    // Draws multiple cards
+    drawCards(count) {
         const drawn = [];
-        const actualCount = Math.min(count, this.cards.length); // Don't over-draw
-        
-        for (let i = 0; i < actualCount; i++) {
-            drawn.push(this.cards.pop());
+        for (let i = 0; i < count && this.cards.length > 0; i++) {
+            drawn.push(this.drawCard());
         }
         return drawn;
     }
-    
-    // Recreates and shuffles the deck
-    newDeck() {
-        this.createDeck();
-        this.shuffleDeck();
+
+    cardsRemaining() {
+        return this.cards.length;
     }
 }
 
+const deck = new Deck();
 
-// --- 2. BLACKJACK GAME LOGIC ---
+// --- 2. DOM ELEMENTS AND INITIAL SETUP ---
 
-let bjGame = null;
+// General Utility Elements
+const cardsRemainingSpan = document.getElementById('cards-remaining');
+const drawnCardSpan = document.getElementById('drawn-card');
+const shuffleButton = document.getElementById('shuffle-deck');
+const drawButton = document.getElementById('draw-card');
+const multiDrawButton = document.getElementById('multi-draw-button');
+const drawCountInput = document.getElementById('draw-count');
 
-// Calculates the value of a hand, handling Ace (1 or 11)
-function handValue(hand) {
+// Blackjack Demo Elements
+const dealerHandEl = document.getElementById('dealerHand');
+const playerHandEl = document.getElementById('playerHand');
+const bjMessageEl = document.getElementById('bjMessage');
+const playerBankDemoEl = document.getElementById('playerBankDemo');
+
+const demoStartButton = document.getElementById('demo-bj-start-button');
+const demoHitButton = document.getElementById('demo-hit-button');
+const demoStandButton = document.getElementById('demo-stand-button');
+const demoResetButton = document.getElementById('demo-reset-button');
+const bjBetInput = document.getElementById('bj-bet-input');
+
+
+// --- 3. BLACKJACK STATE AND CORE LOGIC ---
+
+let bjGame = false;
+let playerHand = [];
+let dealerHand = [];
+let playerBank = 1000; // Starting bank for demo (Simulating /balance state)
+let currentBet = 0;
+
+/**
+ * Calculates the value of a hand, handling Aces dynamically (1 or 11).
+ * @param {Array<Card>} hand 
+ * @returns {number} The total hand value.
+ */
+function calculateHandValue(hand) {
     let value = 0;
-    let aces = 0;
-
+    let aceCount = 0;
+    
     for (const card of hand) {
-        // Special case: The Card class stores rank/value. We need to use rank for BJ logic
-        let cardValue = card.rank;
-
-        if (['J', 'Q', 'K'].includes(cardValue)) {
-            value += 10;
-        } else if (cardValue === 'A') {
-            value += 11;
-            aces++;
-        } else {
-            value += parseInt(cardValue);
+        if (card.rank === "A") {
+            aceCount++;
         }
+        value += card.value; 
     }
 
-    // Convert Ace from 11 to 1 if the hand busts
-    while (value > 21 && aces > 0) {
-        value -= 10;
-        aces--;
+    // Convert Aces from 11 to 1 if the total exceeds 21
+    while (value > 21 && aceCount > 0) {
+        value -= 10; 
+        aceCount--;
     }
 
     return value;
 }
 
-// Helper to format a card for display
-function formatCard(card, isHidden = false) {
-    if (isHidden) return '??';
-    const suitMap = {
-        Spades: '♠',
-        Hearts: '♥',
-        Diamonds: '♦',
-        Clubs: '♣',
-    };
-    return `<span class="card-icon">${card.rank}${suitMap[card.suit]}</span>`;
-}
-
-// Helper to format an entire hand
-function formatHand(hand, hideDealerCard = false) {
-    return hand.map((card, index) => {
-        // Hide the dealer's second card if hideDealerCard is true
-        return formatCard(card, hideDealerCard && index === 1);
-    }).join(' ');
-}
-
-
-// --- Blackjack Game Flow Functions ---
-
-window.startGame = function() {
-    // Re-use the existing main deck for simplicity in the utility
-    if (deck.cards.length < 52) {
-      deck.newDeck();
-    }
-    deck.shuffleDeck();
+/**
+ * Converts a hand array into a display string.
+ * @param {Array<Card>} hand 
+ * @param {boolean} hideDealerCard - True to hide the dealer's second card.
+ * @returns {string} Formatted hand string.
+ */
+function handToString(hand, hideDealerCard = false) {
+    if (hand.length === 0) return "-";
     
-    // Deal initial hands
-    const playerHand = [deck.drawCard(), deck.drawCard()];
-    const dealerHand = [deck.drawCard(), deck.drawCard()];
-    
-    // Ensure both initial hands were dealt
-    if (!playerHand[0] || !dealerHand[0]) {
-      alert("Error: Deck is too small to start a game. Shuffling now.");
-      deck.newDeck();
-      return;
-    }
+    if (hideDealerCard && hand.length > 1) {
+        const visibleCard = hand[0];
+        // Calculate visible value based on the first card
+        let visibleValue = visibleCard.value;
+        if (visibleCard.rank === "A") visibleValue = 11;
 
-    bjGame = { deck, playerHand, dealerHand };
-
-    // Update the main deck display since cards were drawn
-    updateDeckDisplay();
-    updateBlackjackUI('start');
-}
-
-window.playerHit = function() {
-    if (!bjGame) return;
-    
-    const newCard = bjGame.deck.drawCard();
-    if (!newCard) {
-      alert("Deck ran out of cards! Ending game.");
-      endGame("Deck empty. Game over.");
-      return;
-    }
-
-    bjGame.playerHand.push(newCard);
-    const pVal = handValue(bjGame.playerHand);
-    
-    updateDeckDisplay();
-
-    if (pVal > 21) {
-        // Player busts
-        endGame("Bust! Dealer Wins. 💥");
+        return `${visibleCard.toString()}, [Hidden Card] (Showing: ${visibleValue})`;
     } else {
-        updateBlackjackUI('hit');
+        const cardStrings = hand.map(card => card.toString()).join(', ');
+        const value = calculateHandValue(hand);
+        return `${cardStrings} (Total: ${value})`;
     }
 }
 
-window.playerStand = function() {
-    if (!bjGame) return;
+/**
+ * Updates the Deck and Blackjack display elements, including the simulated /balance.
+ * @param {boolean} hideDealer - Whether to hide the dealer's second card.
+ */
+function updateBlackjackDisplay(hideDealer = true) {
+    cardsRemainingSpan.textContent = deck.cardsRemaining();
     
-    // Dealer's turn logic
-    let dVal = handValue(bjGame.dealerHand);
-    
-    // Dealer must draw until total is 17 or higher
-    while (dVal < 17) {
-        const newCard = bjGame.deck.drawCard();
-        if (!newCard) break; // Stop if deck runs out
-        
-        bjGame.dealerHand.push(newCard);
-        dVal = handValue(bjGame.dealerHand);
-    }
-    
-    updateDeckDisplay();
+    // Bot Output Hand Displays
+    dealerHandEl.innerHTML = `Dealer Hand: <strong>${handToString(dealerHand, hideDealer)}</strong>`;
+    playerHandEl.innerHTML = `Your Hand: <strong>${handToString(playerHand)}</strong>`;
 
-    const pVal = handValue(bjGame.playerHand);
-    let result = "";
+    // Bot Output Balance Display (Simulating /balance command output)
+    playerBankDemoEl.innerHTML = `Player Bank: $${playerBank} | Current Bet: $${currentBet}`;
+}
 
-    if (pVal > 21) {
-        result = "Player busted. Dealer Wins. 💥";
-    } else if (dVal > 21) {
-        result = "Dealer busts! You Win! 🎉";
-    } else if (pVal > dVal) {
-        result = "You Win! 🎉";
-    } else if (pVal < dVal) {
-        result = "Dealer Wins. 😭";
+/**
+ * Ends the Blackjack game, calculates winnings/losses, and updates the bank.
+ * @param {string} message - The outcome message.
+ * @param {('win'|'loss'|'push'|'none')} result - The game outcome.
+ */
+function endGame(message, result = 'none') {
+    bjGame = false;
+    
+    updateBlackjackDisplay(false); // Reveal dealer's hand
+    
+    // Update bank based on result (simulating the bot's currency logic)
+    if (result === 'win') {
+        playerBank += currentBet;
+        message = `${message} | **WIN!** You won $${currentBet}. New Bank: $${playerBank}`;
+    } else if (result === 'loss') {
+        playerBank -= currentBet;
+        message = `${message} | **LOSS!** You lost $${currentBet}. New Bank: $${playerBank}`;
+    } else if (result === 'push') {
+        // Bet is returned, bank doesn't change
+        message = `${message} | **PUSH** (Bet returned). Bank: $${playerBank}`;
     } else {
-        result = "Push (Tie). 🤝";
+        // 'none' or reset
+        message = `${message} Bank: $${playerBank}`;
+    }
+    
+    bjMessageEl.textContent = `Bot Output: ${message}`;
+    
+    // Reset controls for new game
+    currentBet = 0; 
+    demoHitButton.style.display = 'none';
+    demoStandButton.style.display = 'none';
+    demoResetButton.style.display = 'block';
+    demoStartButton.style.display = 'inline-block';
+}
+
+/**
+ * Executes the dealer's turn after the player stands or gets Blackjack/21.
+ */
+function dealerTurn() {
+    bjMessageEl.textContent = `Bot Output: Player stands at ${calculateHandValue(playerHand)}. Dealer plays...`;
+    
+    let dealerValue = calculateHandValue(dealerHand);
+    
+    // Dealer must hit until 17 or higher
+    while (dealerValue < 17) {
+        dealerHand.push(deck.drawCard());
+        dealerValue = calculateHandValue(dealerHand);
     }
 
-    endGame(result);
+    const playerValue = calculateHandValue(playerHand);
+
+    let message;
+    let result;
+    if (dealerValue > 21) {
+        message = `Dealer busts with ${dealerValue}. Player wins!`;
+        result = 'win';
+    } else if (playerValue > dealerValue) {
+        message = `Player ${playerValue} beats Dealer ${dealerValue}. Player wins!`;
+        result = 'win';
+    } else if (dealerValue > playerValue) {
+        message = `Dealer ${dealerValue} beats Player ${playerValue}. Dealer wins.`;
+        result = 'loss';
+    } else {
+        message = `Push! Both are ${playerValue}.`;
+        result = 'push';
+    }
+    endGame(message, result);
 }
 
-// --- UI Update Functions ---
+// --- 4. EVENT LISTENERS FOR BOT COMMANDS (Simulating interactions) ---
 
-// Get new DOM elements for Blackjack
-const dealerHandEl = document.getElementById('dealerHand');
-const playerHandEl = document.getElementById('playerHand');
-const messageEl = document.getElementById('bjMessage');
-const controlsEl = document.getElementById('bjControls');
+// Simulates /bj start [bet] command
+demoStartButton.addEventListener('click', () => {
+    // 1. Parse bet amount
+    let betAmount = parseInt(bjBetInput.value, 10);
+    
+    // Use default bet if input is invalid
+    if (isNaN(betAmount) || betAmount <= 0) {
+        betAmount = 50; 
+    }
 
-function updateBlackjackUI(action) {
+    // 2. Check bank (Simulating bot permission check)
+    if (playerBank < betAmount) {
+        bjMessageEl.textContent = `Bot Output: Error. Cannot start game. You only have $${playerBank}. Bet must be <= $${playerBank}.`;
+        return;
+    }
+
+    // 3. Initialize game state
+    currentBet = betAmount;
+    bjGame = true;
+    deck.newDeck(); 
+    playerHand = [];
+    dealerHand = [];
+    
+    // 4. Deal initial cards (Player, Dealer, Player, Dealer)
+    playerHand.push(deck.drawCard());
+    dealerHand.push(deck.drawCard());
+    playerHand.push(deck.drawCard());
+    dealerHand.push(deck.drawCard());
+    
+    updateBlackjackDisplay(true);
+    
+    const playerValue = calculateHandValue(playerHand);
+    
+    // 5. Check for instant Blackjack
+    if (playerValue === 21) {
+        bjMessageEl.textContent = `Bot Output: **BJ START successful!** Bet of $${currentBet} placed. Blackjack! Dealer plays...`;
+        dealerTurn();
+        return;
+    }
+    
+    // 6. Ready for player action
+    // Updated message to reflect component actions (HIT/STAND)
+    bjMessageEl.textContent = `Bot Output: **BJ START successful!** Bet of $${currentBet} placed. Current Hand Value: ${playerValue}. **Next Action: HIT or STAND**`;
+    
+    // 7. Toggle control visibility
+    demoStartButton.style.display = 'none';
+    demoHitButton.style.display = 'inline-block';
+    demoStandButton.style.display = 'inline-block';
+    demoResetButton.style.display = 'none';
+});
+
+// Simulates the 'HIT' game action/component interaction
+demoHitButton.addEventListener('click', () => {
     if (!bjGame) return;
+    
+    playerHand.push(deck.drawCard());
+    updateBlackjackDisplay(true);
+    
+    const playerValue = calculateHandValue(playerHand);
+    
+    if (playerValue > 21) {
+        endGame(`Player busts with ${playerValue}. Dealer wins.`, 'loss');
+    } else if (playerValue === 21) {
+        dealerTurn(); 
+    } else {
+        // Message updated
+        bjMessageEl.textContent = `Bot Output: You HIT and drew ${playerHand[playerHand.length-1].toString()}. New Hand Value: ${playerValue}. **Next Action: HIT or STAND**`;
+    }
+});
 
-    const pVal = handValue(bjGame.playerHand);
-
-    // Initial state or after a 'Hit'
-    dealerHandEl.innerHTML = `Dealer Hand: ${formatCard(bjGame.dealerHand[0])} <span class="hidden-card-text">(One hidden card)</span>`;
-    playerHandEl.innerHTML = `Player Hand: ${formatHand(bjGame.playerHand)} (Value: **${pVal}**)`;
-
-    messageEl.textContent = "Hit or Stand?";
-    controlsEl.innerHTML = `
-        <button onclick="playerHit()">Hit</button> 
-        <button onclick="playerStand()">Stand</button>
-    `;
-}
-
-function endGame(resultMessage) {
+// Simulates the 'STAND' game action/component interaction
+demoStandButton.addEventListener('click', () => {
     if (!bjGame) return;
+    dealerTurn();
+});
 
-    const pVal = handValue(bjGame.playerHand);
-    const dVal = handValue(bjGame.dealerHand);
-
-    // Show all cards and final values
-    dealerHandEl.innerHTML = `Dealer Hand: ${formatHand(bjGame.dealerHand)} (Value: **${dVal}**)`;
-    playerHandEl.innerHTML = `Player Hand: ${formatHand(bjGame.playerHand)} (Value: **${pVal}**)`;
+// Simulates a demo reset
+demoResetButton.addEventListener('click', () => {
+    playerHand = [];
+    dealerHand = [];
+    currentBet = 0;
+    updateBlackjackDisplay(false);
+    // Message updated
+    bjMessageEl.textContent = `Bot Output: Demo Reset. Use the **'/bj start'** command to begin a new game! Current Bank: $${playerBank}.`;
     
-    messageEl.textContent = `FINAL RESULT: ${resultMessage}`;
-    
-    // Replace Hit/Stand with a Start button
-    controlsEl.innerHTML = `<button onclick="startGame()">Start Blackjack</button>`;
-    
-    bjGame = null; // Clear game state
-}
+    // Reset control visibility
+    demoStartButton.style.display = 'inline-block';
+    demoResetButton.style.display = 'none';
+    demoHitButton.style.display = 'none';
+    demoStandButton.style.display = 'none';
+});
 
+// --- 5. LISTENERS FOR GENERAL UTILITY (Simulating /shuffle, /draw) ---
 
-// --- 3. MAIN INITIALIZATION AND EVENT LISTENERS (Existing Code) ---
-
-// Card Deck Initialization and DOM elements
-const deck = new Deck();
-const cardsRemainingSpan = document.getElementById('cards-remaining');
-const drawnCardSpan = document.getElementById('drawn-card');
-const shuffleButton = document.getElementById('shuffle-deck');
-const drawButton = document.getElementById('draw-card'); 
-const multiDrawButton = document.getElementById('multi-draw-button'); 
-const drawCountInput = document.getElementById('draw-count'); 
-
-function updateDeckDisplay() {
-  cardsRemainingSpan.textContent = deck.cards.length;
-}
-
+// Shuffle Deck listener (Simulates /shuffle)
 shuffleButton.addEventListener('click', () => {
   deck.newDeck();
   drawnCardSpan.textContent = 'Deck shuffled! Draw a card.';
   // Also clear any previous BJ game state on shuffle
-  if (bjGame) endGame("Game Reset by Shuffle.");
-  updateDeckDisplay();
+  if (bjGame) endGame("Game Reset by Deck Shuffle.", 'none'); 
+  updateBlackjackDisplay();
 });
 
-// Single card draw listener
+// Single card draw listener (Simulates /draw 1)
 drawButton.addEventListener('click', () => {
-  if (bjGame) endGame("Game Reset by Card Draw.");
+  if (bjGame) endGame("Game Reset by Card Draw.", 'none');
   const card = deck.drawCard();
   if (card) {
     drawnCardSpan.textContent = `Drew 1 card: ${card.toString()}`;
   } else {
     drawnCardSpan.textContent = 'Deck is empty! Shuffle to restart.';
   }
-  updateDeckDisplay();
+  updateBlackjackDisplay();
 });
 
-// Multi-card draw listener
+// Multi-card draw listener (Simulates /draw [count])
 multiDrawButton.addEventListener('click', () => {
-    if (bjGame) endGame("Game Reset by Card Draw.");
+    if (bjGame) endGame("Game Reset by Card Draw.", 'none');
 
     const count = parseInt(drawCountInput.value, 10);
     
-    // Input validation
     if (isNaN(count) || count <= 0) {
         drawnCardSpan.textContent = 'Please enter a valid number of cards to draw (1 or more).';
         return;
@@ -307,17 +369,13 @@ multiDrawButton.addEventListener('click', () => {
     const drawnCards = deck.drawCards(count);
 
     if (drawnCards.length > 0) {
-        // Concatenate card details for display
         const cardStrings = drawnCards.map(card => card.toString()).join(', ');
         drawnCardSpan.textContent = `Drew ${drawnCards.length} cards: ${cardStrings}`;
     } else {
         drawnCardSpan.textContent = 'Deck is empty! Shuffle to restart.';
     }
-
-    updateDeckDisplay();
-    drawCountInput.value = ''; // Clear input after successful draw
+    updateBlackjackDisplay();
 });
 
-
-// Initial display setup
-updateDeckDisplay();
+// Initial load update
+updateBlackjackDisplay(false);
