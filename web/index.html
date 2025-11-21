@@ -9,64 +9,96 @@
 <body>
 
     <div id="content">
-        <h1>The Binary Blizzard Deck Utility</h1>
+        <h1>The Binary Blizzard Bot Utility Demo</h1>
         
-          <img src="card1.png" alt="A sample card from the deck" width="200" height="200">
+         <img src="card1.png" alt="A sample card from the deck" width="200" height="200">
         
         <div id="about-section" class="game-section">
-            <h2>About the Utility</h2>
+            <h2>About the Bot</h2>
             <p>
-                This web application demonstrates the core **Deck.js** class developed for the Binary Blizzards Bot. It provides a robust, browser-based simulation of card generation, shuffling, and drawing.
-            </p>
-            <p>
-                The utility features a standard **52-card deck** including the suits Spades, Hearts, Diamonds, and Clubs.
-            </p>
-        </div>
-        
-        <div id="instructions-section" class="game-section">
-            <h2>How to Use It (Instructions)</h2>
-            <p>
-                The deck is automatically **shuffled** on load. Use the controls below to interact with the deck's logic:
-            </p>
-            <ul>
-                <li>Click **"Shuffle Deck"** to reset the deck to 52 cards and randomize their order.</li>
-                <li>Use the **"Draw Multiple Cards"** section to draw more than one card at a time.</li>
-                <li>Click **"Draw Single Card"** to take and display a single card from the top of the deck.</li>
-            </ul>
-        </div>
-
-        <div id="card-game" class="game-section">
-            <h2>Simulator (Play)</h2>
-            
-            <div class="card-deck-buttons">
-                <button id="shuffle-deck">Shuffle Deck / New Game</button>
-                <button id="draw-card">Draw Single Card</button>
-            </div>
-            
-            <div class="multi-draw-controls">
-                <input type="number" id="draw-count" min="1" max="52" placeholder="Cards to draw" value="5">
-                <button id="multi-draw-button">Draw Multiple Cards</button>
-            </div>
-            
-            <h3>Status:</h3>
-            <p>
-                **Cards Remaining:** <span id="cards-remaining">0</span><br>
-                <strong>Drawn Cards:</strong> <span id="drawn-card">Hit "Shuffle" or "Draw" to interact!</span>
+                This web application demonstrates the core **Deck.js** logic and key command features of the Binary Blizzards Bot, including card handling, mini-games, and a currency system.
             </p>
         </div>
 
         <hr class="separator">
 
-        <div id="blackjack-game" class="game-section">
-            <h2>🃏 Blackjack (21)</h2>
-            <p>Play a round of 21 against the dealer using the same card deck logic.</p>
+        <div id="commands-list" class="game-section">
+            <h2>🤖 Bot Command List</h2>
+            <p>The bot supports the following global commands, as defined:</p>
+            <div class="command-grid">
+                <ul>
+                    <li><code>/test</code>: Basic command.</li>
+                    <li><code>/challenge</code>: Challenge to Rock Paper Scissors.</li>
+                    <li><code>/guess [suit] [value]</code>: Guess a random card.</li>
+                    <li><code>/rules</code>: Show Blackjack rules (detailed below).</li>
+                </ul>
+                <ul>
+                    <li><code>/balance</code>: Show your current money balance.</li>
+                    <li><code>/daily</code>: Claim your daily free money.</li>
+                    <li><code>/bj start [bet]</code>: Start a Blackjack game.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <hr class="separator">
 
-            <div id="dealerHand" class="hand-display">Dealer Hand: -</div>
-            <div id="playerHand" class="hand-display">Player Hand: -</div>
-            <div id="bjMessage" class="bj-message">Ready to Play!</div>
+        <div id="deck-utility" class="game-section controls">
+            <h2>⚙️ Core Deck Utility Demo</h2>
+            <p>Simulates the underlying card logic used by all card-related commands.</p>
+            <button id="shuffle-deck">Simulate: /shuffle</button>
             
-            <div id="bjControls" class="bj-controls">
-                <button onclick="startGame()">Start Blackjack</button>
+            <div class="draw-controls">
+                <button id="draw-card">Simulate: /draw 1</button>
+            </div>
+            
+            <div class="multi-draw-controls">
+                <input type="number" id="draw-count" min="1" max="52" placeholder="Cards to draw" value="5">
+                <button id="multi-draw-button">Simulate: /draw [count]</button>
+            </div>
+            
+            <div id="status-output">
+                <h3>Status:</h3>
+                <p>
+                    **Cards Remaining:** <span id="cards-remaining">52</span><br>
+                    <strong>Drawn Cards:</strong> <span id="drawn-card">Deck is ready!</span>
+                </p>
+            </div>
+        </div>
+
+        <hr class="separator">
+
+        <div id="blackjack-game" class="game-section">
+            <h2>🃏 Blackjack Logic Demo</h2>
+            <p>
+                Demonstrates the full Blackjack game flow triggered by <code>/bj start</code>. (Default Bet: $50)
+            </p>
+
+            <div id="betting-demo" class="command-demo-block">
+                <h3>💰 Player Bank Status (Simulates <code>/balance</code> command)</h3>
+                <p>Current Status: <span id="playerBankDemo">Player Bank: $1000 | Current Bet: $0</span></p>
+                
+                <label for="bj-bet-input">Bet Amount for Start (Optional):</label>
+                <input type="number" id="bj-bet-input" min="1" max="1000" value="50" placeholder="e.g. 50">
+            </div>
+            
+            <hr class="separator-light">
+
+            <div id="game-demo" class="command-demo-block">
+                <h3>🎮 Game Command Interaction</h3>
+                
+                <div id="bot-output-area">
+                    <div id="dealerHand" class="hand-display">Dealer Hand: -</div>
+                    <div id="playerHand" class="hand-display">Your Hand: -</div>
+                    <div id="bjMessage" class="bj-message">Ready to play! Enter your bet (or use default 50) and click **'/bj start'**.</div>
+                </div>
+
+                <div id="bj-demo-controls" class="bj-controls">
+                    <button id="demo-bj-start-button" class="btn-primary">Run: /bj start</button> 
+                    <!-- Buttons now clearly labeled as game actions/components -->
+                    <button id="demo-hit-button" style="display: none;">HIT (Action)</button>
+                    <button id="demo-stand-button" style="display: none;">STAND (Action)</button>
+                    <button id="demo-reset-button" style="display: none;">Reset Demo</button>
+                </div>
             </div>
         </div>
 
@@ -80,4 +112,3 @@
     <script src="main.js"></script>
 </body>
 </html>
-```eof
