@@ -1,7 +1,7 @@
 /* Core structure and typography */
 html {
     font-size: 10px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     
     /* ***** THEME INTEGRATION: Dark Navy Blue Background ***** */
     background-color: #1A237E; /* Dark Navy Blue base color */
@@ -13,7 +13,6 @@ html {
             transparent 2px, 
             transparent 10px
         );
-    /* -------------------------------------------------------- */
 }
 
 body {
@@ -33,118 +32,101 @@ h1 {
     margin: 0;
     padding: 20px 0;
     /* ***** THEME INTEGRATION: Teal Heading Color ***** */
-    color: #00838F;
-    text-shadow: 4px 4px 0px #333; /* Darker shadow */
-    letter-spacing: 3px;
+    color: #004D40; 
 }
 
 h2 {
-    font-size: 32px;
-    color: #00838F; /* Teal accent */
-    border-bottom: 3px solid #00838F;
+    font-size: 30px;
+    border-bottom: 2px solid #004D40;
     padding-bottom: 10px;
     margin-top: 30px;
+    color: #004D40;
 }
 
 h3 {
-    font-size: 24px;
-    color: #333;
-    margin-top: 20px;
-}
-
-p, li {
-    font-size: 18px;
-    line-height: 1.6;
-    letter-spacing: 0.5px;
-    color: #333;
-}
-
-/* Image Styling */
-img {
-    display: block;
-    margin: 20px auto;
-    border: 5px solid #D32F2F; /* Retaining red border for visual pop */
-    border-radius: 10px;
-    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
-}
-
-/* Interactive Section Styling */
-.game-section {
-    background-color: #FFFFFF; /* Retain pure white for readability */
-    padding: 20px;
-    margin-bottom: 25px;
-    border-radius: 8px;
-    border: 1px solid #B2EBF2; /* Light blue border */
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-/* Button Layout Styling for both rows */
-.card-deck-buttons,
-.multi-draw-controls {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 15px 0;
-    gap: 10px; /* Space between elements */
-}
-
-/* Input field styling for card count */
-.multi-draw-controls input[type="number"] {
     font-size: 20px;
-    padding: 15px 10px;
-    width: 150px;
-    text-align: center;
-    border: 2px solid #00838F;
-    border-radius: 10px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: #00838F; /* Brighter Teal */
+    margin-top: 15px;
 }
 
-/* Button Styling (applied to existing buttons) */
-.card-deck-buttons button,
-.multi-draw-controls button {
-    font-size: 20px;
-    padding: 15px 30px;
-    margin: 5px 0; 
-    cursor: pointer;
-    
+p, label {
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 10px 0;
+}
+
+/* General button styling */
+button {
+    background-color: #00838F; /* Primary button color */
     color: white;
-    /* ***** THEME INTEGRATION: Navy Blue Button Gradient ***** */
-    background: linear-gradient(to bottom, #3949AB, #1A237E); 
-    border: 2px solid black;
-    border-radius: 10px;
-    text-transform: uppercase;
-    font-weight: bold;
-    box-shadow: 4px 4px 0px #004D40; /* Teal shadow */
-    transition: all 0.1s ease;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.card-deck-buttons button:hover,
-.multi-draw-controls button:hover {
-    background: linear-gradient(to bottom, #4758C1, #2C3A8D);
-    box-shadow: 2px 2px 0px #004D40;
-    transform: translate(2px, 2px);
+button:hover:not(:disabled) {
+    background-color: #005A64; /* Darker on hover */
+    transform: translateY(-1px);
 }
 
-.card-deck-buttons button:active,
-.multi-draw-controls button:active {
-    background: #1A237E;
+button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    background-color: #B0BEC5; /* Grey out disabled buttons */
+    cursor: not-allowed;
     box-shadow: none;
-    transform: translate(4px, 4px);
 }
 
-/* Specific styling for the result display to better handle multiple cards */
-#drawn-card {
-    font-size: 20px; 
-    font-weight: bold;
-    color: #D32F2F; /* Retaining red for visual impact */
-    background-color: #F8BBD0; /* Light pink/mauve background for card result */
-    padding: 10px 15px;
+/* Section styling */
+.game-section {
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+/* Controls grouping */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px 0;
+}
+
+.draw-controls, .multi-draw-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.multi-draw-controls input {
+    font-size: 16px;
+    padding: 5px;
+    width: 80px;
+    text-align: center;
+    border: 1px solid #00838F;
     border-radius: 5px;
-    border: 1px dashed #00838F; /* Teal dashed border */
-    display: block; /* Ensures it takes full width for multi-card display */
-    word-break: break-word; /* Allows long card strings to wrap */
 }
 
+#bj-bet-input {
+    font-size: 16px;
+    padding: 5px;
+    width: 80px;
+    text-align: center;
+    border: 1px solid #00838F;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+/* Status area styling */
 #cards-remaining {
     font-weight: bold;
     color: #1A237E; /* Navy blue text */
@@ -156,8 +138,9 @@ img {
     color: #444;
 }
 
-/* --- NEW BLACKJACK STYLES --- */
+/* --- COMMAND DEMO STYLES --- */
 
+/* Horizontal Separator */
 .separator {
     border: 0;
     height: 1px;
@@ -165,13 +148,62 @@ img {
     margin: 30px 0;
 }
 
-/* Styling for the hands and message */
+.separator-light {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), #00BCD4, rgba(0, 0, 0, 0));
+    margin: 20px 0;
+}
+
+/* Style for the command blocks */
+.command-demo-block {
+    margin: 20px 0;
+    padding: 15px;
+    border: 2px solid #00BCD4; /* Cyan/Teal border for bot sections */
+    border-radius: 8px;
+    background-color: #F8FFFF; /* Slightly lighter background */
+}
+
+/* Style for the code/command text */
+.command-demo-block code, .command-grid code {
+    background-color: #CFD8DC; /* Light grey background */
+    color: #004D40; /* Dark Teal text */
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Command List Grid */
+.command-grid {
+    display: flex;
+    gap: 20px;
+}
+.command-grid ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.command-grid li {
+    margin-bottom: 5px;
+}
+
+/* Ensure the bot output area is clearly visible */
+#bot-output-area {
+    margin: 15px 0;
+    padding: 10px;
+    border: 1px dashed #757575;
+    background-color: #ECEFF1; /* Very light grey */
+}
+
+/* Styling for the hands and message (Bot Output Look) */
 .hand-display {
     font-size: 20px;
     font-weight: 500;
     margin: 10px 0;
     padding: 8px 0;
     border-bottom: 1px dashed #B2EBF2;
+    font-family: 'Courier New', Courier, monospace; /* Monospace for bot output feel */
 }
 
 .bj-message {
@@ -179,6 +211,7 @@ img {
     font-weight: bold;
     margin: 15px 0;
     color: #D32F2F; /* Red for results/status */
+    font-family: 'Inter', sans-serif;
 }
 
 /* Container for Blackjack control buttons */
@@ -193,31 +226,4 @@ img {
 .bj-controls button {
     font-size: 18px;
     padding: 12px 25px;
-    /* Inherits all other styling from the general button rules */
-}
-
-/* Card Icons for the hands */
-.card-icon {
-    font-family: Arial, sans-serif; 
-    font-size: 22px;
-    padding: 0 4px;
-    font-weight: bold;
-}
-
-/* Color codes for suits */
-.card-icon:contains('♥'), 
-.card-icon:contains('♦') {
-    color: #D32F2F; /* Red suits */
-}
-
-.card-icon:contains('♠'), 
-.card-icon:contains('♣') {
-    color: #1A237E; /* Dark blue/black suits */
-}
-
-.hidden-card-text {
-    font-style: italic;
-    color: #666;
-    font-size: 16px;
-    margin-left: 5px;
 }
