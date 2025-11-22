@@ -35,6 +35,7 @@ app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 const PORT = process.env.PORT || 3000;
 
 const games = new Map();
+const pendingGuesses = new Map();
 
 const blackjackGames = new Map();
 
@@ -183,51 +184,38 @@ Equal totals → Tie (Push)`;
       }
 
       /*  /guess  */
-      if (name === 'guess') {
-        const userId = body.member.user.id;
-        const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
-        const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+        if (name === 'guess') {
+          const userId = body.member.user.id;
 
-        const validSuits = ['hearts', 'diamonds', 'clubs', 'spades'];
-        const validValues = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+          // get actual values from options
+          const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
+          const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
 
-        if (!validSuits.includes(suitGuess) || !validValues.includes(valueGuess)) {
+          // store actual values in pendingGuesses
+          pendingGuesses.set(userId, { suitGuess, valueGuess });
+
+          // show confirm button
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: { content: '❌ Invalid card input! Try again.' }
+            data: {
+              content: `You guessed **${valueGuess} of ${suitGuess}**. Click confirm to submit.`,
+              components: [
+                {
+                  type: 1,
+                  components: [
+                    {
+                      type: 2,
+                      style: 1,
+                      label: "Confirm Guess",
+                      custom_id: "confirm_guess"
+                    }
+                  ]
+                }
+              ]
+            }
           });
         }
 
-        if (!games.has(userId)) {
-          const deck = new Deck();
-          const secretCard = deck.draw();
-          games.set(userId, secretCard);
-        }
-
-        const secretCard = games.get(userId);
-
-        if (suitGuess === secretCard.suit.toLowerCase() &&
-            valueGuess === secretCard.value.toUpperCase()) 
-        {
-          games.delete(userId);
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: { content: `🎉 Correct! It was **${secretCard.value} of ${secretCard.suit}**.` },
-          });
-        }
-
-        if (suitGuess === secretCard.suit.toLowerCase()) {
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: { content: `✔ Correct suit, but wrong value.` },
-          });
-        }
-
-        return res.send({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `❌ Wrong guess. Try again!` },
-        });
-      }
 
 
       
@@ -340,6 +328,55 @@ Equal totals → Tie (Push)`;
         }
       }
     }
+      //guess button
+      
+      if (body.type === 3 && body.data.custom_id === "confirm_guess") {
+        const userId = body.member.user.id;
+        const guess = pendingGuesses.get(userId);
+
+        if (!guess) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: "❌ You have no guess pending." }
+          });
+        }
+
+        const { suitGuess, valueGuess } = guess;
+
+        if (!games.has(userId)) {
+          const deck = new Deck();
+          const secretCard = deck.draw();
+          games.set(userId, secretCard);
+        }
+
+        const secretCard = games.get(userId);
+
+        pendingGuesses.delete(userId);
+
+        if (
+          suitGuess === secretCard.suit.toLowerCase() &&
+          valueGuess === secretCard.value.toUpperCase()
+        ) {
+          games.delete(userId);
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: `🎉 Correct! It was **${secretCard.value} of ${secretCard.suit}**.` }
+          });
+        }
+
+        if (suitGuess === secretCard.suit.toLowerCase()) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: "✔ Correct suit, wrong value." }
+          });
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: "❌ Wrong guess!" }
+        });
+      }
+
 
     /* 
        BUTTON INTERACTIONS (Hit / Stand)
