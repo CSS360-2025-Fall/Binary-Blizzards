@@ -77,6 +77,23 @@ const RULES_COMMAND = {
   contexts: [0, 2],
 };
 
+
+const BALANCE_COMMAND = {
+  name: 'balance',
+  description: 'Show your current balance',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+const DAILY_COMMAND = {
+  name: 'daily',
+  description: 'Claim your daily free money (24h cooldown)',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
 const BJ_COMMAND = {
   name: 'bj',
   description: 'Play a simple Blackjack game',
@@ -85,6 +102,14 @@ const BJ_COMMAND = {
       type: 1,
       name: 'start',
       description: 'Start a Blackjack game',
+      options: [
+        {
+          type: 4, // integer
+          name: 'bet',
+          description: 'Amount to bet',
+          required: false,
+        }
+      ]
     }
   ],
   type: 1,
@@ -93,6 +118,6 @@ const BJ_COMMAND = {
 };
 
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND];
+const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

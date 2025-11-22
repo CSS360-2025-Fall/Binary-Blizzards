@@ -8,8 +8,30 @@ import {
 import { getRandomEmoji } from './utils.js';
 import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
+import fs from 'fs';
+import path from 'path';
+
+const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
+
+function readBalances() {
+  try {
+    const raw = fs.readFileSync(BALANCE_FILE, 'utf8');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function writeBalances(data) {
+  try {
+    fs.writeFileSync(BALANCE_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error('Failed to write balances:', e);
+  }
+}
 
 const app = express();
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 const PORT = process.env.PORT || 3000;
 
 const games = new Map();
@@ -207,6 +229,50 @@ Equal totals → Tie (Push)`;
         });
       }
 
+
+      
+      /*  /balance  */
+      if (name === 'balance') {
+        const userId = body.member.user.id;
+        const balances = readBalances();
+        const user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `💰 Your balance: ${user.balance}` },
+        });
+      }
+
+      /*  /daily  */
+      if (name === 'daily') {
+        const userId = body.member.user.id;
+        const balances = readBalances();
+        const now = Date.now();
+        const DAY = 24 * 60 * 60 * 1000;
+        let user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+        if (now - (user.lastDaily || 0) < DAY) {
+          const remaining = DAY - (now - (user.lastDaily || 0));
+          const hours = Math.floor(remaining / 3600000);
+          const minutes = Math.floor((remaining % 3600000) / 60000);
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: `❌ Daily already claimed. Try again in ${hours}h ${minutes}m.` },
+          });
+        }
+
+        const AMOUNT = 100;
+        user.balance = (user.balance || 0) + AMOUNT;
+        user.lastDaily = now;
+        balances[userId] = user;
+        writeBalances(balances);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `✅ You claimed ${AMOUNT} coins. New balance: ${user.balance}` },
+        });
+      }
+      
       /* 
          /bj start 
        */
@@ -215,6 +281,35 @@ Equal totals → Tie (Push)`;
         if (sub === 'start') {
           const userId = body.member.user.id;
 
+           // check for typed bet option; if missing, default to a no-bet game
+          const subOptions = data.options[0].options || [];
+          const betOpt = subOptions.find(o => o.name === 'bet');
+
+          const balances = readBalances();
+          const user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+          const amount = betOpt ? (parseInt(betOpt.value, 10) || 0) : 0;
+          if (amount < 0) {
+            return res.send({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: { content: '❌ Invalid bet amount. Use a positive integer.' },
+            });
+          }
+
+          if (amount > 0) {
+            if ((user.balance || 0) < amount) {
+              return res.send({
+                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                data: { content: `❌ Insufficient funds. Your balance: ${user.balance}` },
+              });
+            }
+
+            // Deduct bet and persist
+            user.balance = (user.balance || 0) - amount;
+            balances[userId] = user;
+            writeBalances(balances);
+          }
+
           const deck = new Deck();
           const player = [deck.draw(), deck.draw()];
           const dealer = [deck.draw(), deck.draw()];
@@ -222,19 +317,15 @@ Equal totals → Tie (Push)`;
           blackjackGames.set(userId, {
             deck,
             player,
-            dealer
+            dealer,
+            bet: amount
           });
 
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
               content:
-`🎰 **Blackjack Started!**
-
-Dealer shows: ${dealer[0].value}${suitEmoji(dealer[0].suit)}
-Your hand: ${formatHand(player)} (value ${handValue(player)})
-
-Hit or Stand?`,
+`🎰 **Blackjack Started!** (Bet: ${amount})\n\nDealer shows: ${dealer[0].value}${suitEmoji(dealer[0].suit)}\nYour hand: ${formatHand(player)} (value ${handValue(player)})\n\nHit or Stand?`,
               components: [
                 {
                   type: 1,
@@ -318,11 +409,33 @@ Hit or Stand?`,
         const pVal = handValue(game.player);
 
         let result = "";
+          const bet = game.bet || 0;
+        if (bet) {
+          const balances = readBalances();
+          const userBal = balances[userId] || { balance: 0, lastDaily: 0 };
+
+          if (dVal > 21) {
+            result = `Dealer busts! **You win ${bet}! 🎉**`;
+            userBal.balance = (userBal.balance || 0) + (bet * 2);
+          } else if (pVal > dVal) {
+            result = `**You win ${bet}! 🎉**`;
+            userBal.balance = (userBal.balance || 0) + (bet * 2);
+          } else if (pVal < dVal) {
+            result = `**Dealer wins. You lost ${bet}. 😭**`;
+            // bet was already deducted when game started
+          } else {
+            result = `**Push (tie). Your ${bet} has been returned. 🤝**`;
+            userBal.balance = (userBal.balance || 0) + bet;
+          }
+
+          balances[userId] = userBal;
+          writeBalances(balances);
+        } else {
         if (dVal > 21) result = "Dealer busts! **You win! 🎉**";
         else if (pVal > dVal) result = "**You win! 🎉**";
         else if (pVal < dVal) result = "**Dealer wins. 😭**";
         else result = "**Push (tie). 🤝**";
-
+        }
         blackjackGames.delete(userId);
 
         return res.send({
