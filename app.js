@@ -87,7 +87,12 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
           game: currentGame,
         }
         console.log(currentGames[id].game.winningCard);
-
+        // https://github.com/CSS360-2025-Fall/Binary-Blizzards/blob/main/examples/app.js
+        
+        // https://discord.com/developers/docs/resources/webhook
+        // malformed (for me)
+        const endpoint = `webhooks/${process.env.APP_ID}/${req.body.token}/messages/${req.body.user.id}`;
+        console.log(endpoint);
 
       }
     }
