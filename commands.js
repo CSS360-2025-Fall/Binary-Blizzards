@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { getRPSChoices } from './game.js';
 import { capitalize, InstallGlobalCommands } from './utils.js';
 import { Deck } from './card.js';
+import { AltCard } from './alt-card.js';
 
 // Get the game choices from game.js
 function createCommandChoices() {
@@ -16,6 +17,36 @@ function createCommandChoices() {
   }
 
   return commandChoices;
+}
+
+// Creates suit drop down selection.
+function createSuitSelection() {
+  const suits = AltCard.getSuitChoices();
+  const suitChoices = [];
+
+  for (let suit of suits) {
+    suitChoices.push({
+      name: AltCard.suits[suit].namePlural,
+      value: AltCard.suits[suit].namePlural.toLowerCase(),
+    });
+  }
+
+  return suitChoices;
+}
+
+// Creates rank drop down selection.
+function createRankSelection() {
+  const ranks = AltCard.getRankChoices();
+  const rankChoices = [];
+
+  for (let rank of ranks) {
+    rankChoices.push({
+      name: rank,
+      value: rank.toLowerCase(),
+    });
+  }
+
+  return rankChoices;
 }
 
 // Simple test command
@@ -45,7 +76,6 @@ const CHALLENGE_COMMAND = {
   contexts: [0, 2],
 };
 
-
 const GUESS_COMMAND = {
   name: 'guess',
   description: 'Try to guess the card I have picked!',
@@ -53,14 +83,16 @@ const GUESS_COMMAND = {
     {
       type: 3,
       name: 'suit',
-      description: 'Enter the card suit (hearts, spades, clubs, diamonds)',
+      description: 'Select suit from menu: ',
       required: true,
+      choices: createSuitSelection(),
     },
     {
       type: 3,
-      name: 'value',
-      description: 'Enter the card value (A, 2–10, J, Q, K)',
+      name: 'rank',
+      description: 'Select rank from menu: ',
       required: true,
+      choices: createRankSelection(),
     },
   ],
   type: 1,

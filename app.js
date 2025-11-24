@@ -187,9 +187,12 @@ Equal totals → Tie (Push)`;
         if (name === 'guess') {
           const userId = body.member.user.id;
 
+          const convertRank =data.options.find(o => o.name === 'rank').value.toUpperCase();
+
           // get actual values from options
           const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
-          const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+          // const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+          const valueGuess = convertRank;
 
           // store actual values in pendingGuesses
           pendingGuesses.set(userId, { suitGuess, valueGuess });
