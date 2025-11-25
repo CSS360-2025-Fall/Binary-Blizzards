@@ -10,10 +10,11 @@ import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
 import fs from 'fs';
 import path from 'path';
+import { rerun } from './deploy-commands.js';
 
 const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
-// global for light/dark mode; default is null.
-export let TOGGLE_MODE = null;
+// global for emoji mode; default is off.
+export let TOGGLE_MODE = 'off';
 
 function readBalances() {
   try {
@@ -222,13 +223,14 @@ Equal totals → Tie (Push)`;
         }
 
 
-      if (name === 'mode') {
+      if (name === 'emoji') {
         let previousMode = TOGGLE_MODE;
         const mode = data.options[0].value;
         TOGGLE_MODE = mode;
+        console.log(TOGGLE_MODE);
 
         if(previousMode !== TOGGLE_MODE) {
-          console.log("is this working?");
+          rerun();
         }
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,

@@ -4,6 +4,7 @@ import { capitalize, InstallGlobalCommands } from './utils.js';
 import { Deck } from './card.js';
 import { AltCard } from './alt-card.js';
 import { TOGGLE_MODE } from './app.js';
+import { StringSelectMenuOptionBuilder } from 'discord.js';
 
 // Get the game choices from game.js
 function createCommandChoices() {
@@ -25,23 +26,21 @@ function createSuitSelection() {
   const suits = AltCard.getSuitChoices();
   const suitChoices = [];
 
-  console.log("anything");
-  console.log(TOGGLE_MODE);
-  for (let suit of suits) {
-    suitChoices.push({
-      name: AltCard.suits[suit].namePlural,
-      value: AltCard.suits[suit].namePlural.toLowerCase(),
-    });
-  }
-  console.log(TOGGLE_MODE);
-
-    // UPDATE: don't love repeat code but this is a bandage for now
-    if(TOGGLE_MODE !== null) {
-      for(let suit of suits) {
-        suitChoices.name = AltCard.suits[suit].unicodeBlack + AltCard.suits[suit].namePlural;
-        console.log(suitChoices.name);
-      }
+  if(TOGGLE_MODE === 'off') {
+    for (let suit of suits) {
+      suitChoices.push({
+        name: AltCard.suits[suit].namePlural,
+        value: AltCard.suits[suit].namePlural.toLowerCase(),
+      });
     }
+  } else {
+    for (let suit of suits) {
+      suitChoices.push({
+        name: AltCard.suits[suit].emoji,
+        value: AltCard.suits[suit].namePlural.toLowerCase(),
+      });
+    }
+  }
 
   return suitChoices;
 }
@@ -81,6 +80,7 @@ const CHALLENGE_COMMAND = {
       description: 'Pick your object',
       required: true,
       choices: createCommandChoices(),
+      // choices: createCommandChoices,
     },
   ],
   type: 1,
@@ -98,6 +98,7 @@ const GUESS_COMMAND = {
       description: 'Select suit from menu: ',
       required: true,
       choices: createSuitSelection(),
+      choices: createSuitSelection,
     },
     {
       type: 3,
@@ -105,6 +106,7 @@ const GUESS_COMMAND = {
       description: 'Select rank from menu: ',
       required: true,
       choices: createRankSelection(),
+      choices: createRankSelection,
     },
   ],
   type: 1,
@@ -161,23 +163,23 @@ const BJ_COMMAND = {
   contexts: [0, 2],
 };
 
-const MODE_COMMAND = {
-  name: 'mode',
-  description: 'Toggle light/dark mode for guessing game',
+const EMOJI_COMMAND = {
+  name: 'emoji',
+  description: 'Toggle emoji mode for guessing game',
   options: [
     {
       type: 3,
-      name: 'mode',
+      name: 'emoji',
       description: 'Select mode',
       required: true,
       choices: [
         {
-          name: 'Light',
-          value: 'light',
+          name: 'On',
+          value: 'on',
         },
         {
-          name: 'Dark',
-          value: 'dark',
+          name: 'Off',
+          value: 'off',
         }
       ],
     },
@@ -187,6 +189,6 @@ const MODE_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, MODE_COMMAND];
+export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, EMOJI_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
