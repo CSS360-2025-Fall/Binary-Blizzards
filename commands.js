@@ -3,6 +3,8 @@ import { getRPSChoices } from './game.js';
 import { capitalize, InstallGlobalCommands } from './utils.js';
 import { Deck } from './card.js';
 import { AltCard } from './alt-card.js';
+import { TOGGLE_MODE } from './app.js';
+import { StringSelectMenuOptionBuilder } from 'discord.js';
 
 // Get the game choices from game.js
 function createCommandChoices() {
@@ -24,11 +26,20 @@ function createSuitSelection() {
   const suits = AltCard.getSuitChoices();
   const suitChoices = [];
 
-  for (let suit of suits) {
-    suitChoices.push({
-      name: AltCard.suits[suit].namePlural,
-      value: AltCard.suits[suit].namePlural.toLowerCase(),
-    });
+  if(TOGGLE_MODE === 'off') {
+    for (let suit of suits) {
+      suitChoices.push({
+        name: AltCard.suits[suit].namePlural,
+        value: AltCard.suits[suit].namePlural.toLowerCase(),
+      });
+    }
+  } else {
+    for (let suit of suits) {
+      suitChoices.push({
+        name: AltCard.suits[suit].emoji,
+        value: AltCard.suits[suit].namePlural.toLowerCase(),
+      });
+    }
   }
 
   return suitChoices;
@@ -69,6 +80,7 @@ const CHALLENGE_COMMAND = {
       description: 'Pick your object',
       required: true,
       choices: createCommandChoices(),
+      // choices: createCommandChoices,
     },
   ],
   type: 1,
@@ -86,6 +98,7 @@ const GUESS_COMMAND = {
       description: 'Select suit from menu: ',
       required: true,
       choices: createSuitSelection(),
+      choices: createSuitSelection,
     },
     {
       type: 3,
@@ -93,6 +106,7 @@ const GUESS_COMMAND = {
       description: 'Select rank from menu: ',
       required: true,
       choices: createRankSelection(),
+      choices: createRankSelection,
     },
   ],
   type: 1,
@@ -149,7 +163,32 @@ const BJ_COMMAND = {
   contexts: [0, 2],
 };
 
+const EMOJI_COMMAND = {
+  name: 'emoji',
+  description: 'Toggle emoji mode for guessing game',
+  options: [
+    {
+      type: 3,
+      name: 'emoji',
+      description: 'Select mode',
+      required: true,
+      choices: [
+        {
+          name: 'On',
+          value: 'on',
+        },
+        {
+          name: 'Off',
+          value: 'off',
+        }
+      ],
+    },
+  ],
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND];
+export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, EMOJI_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

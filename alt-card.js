@@ -11,6 +11,7 @@ export class AltCard {
         lowercase: 'spade',
         unicodeBlack: 'U+2660',
         unicodeLine: 'U+2664',
+        emoji: '♠️',
       },
       Heart: {
         name: 'Heart',
@@ -18,6 +19,7 @@ export class AltCard {
         lowercase: 'heart',
         unicodeBlack: 'U+2665',
         unicodeLine: 'U+2661',
+        emoji: '❤️',
       },
       Diamond: {
         name: 'Diamond',
@@ -25,6 +27,7 @@ export class AltCard {
         lowercase: 'diamond',
         unicodeBlack: 'U+2666',
         unicodeLine: 'U+2662',
+        emoji: '♦️',
       },
       Club: {
         name: 'Club',
@@ -32,6 +35,7 @@ export class AltCard {
         lowercase: 'club',
         unicodeBlack: 'U+2663',
         unicodeLine: 'U+2667',
+        emoji: '♣️',
       },
     };
 
