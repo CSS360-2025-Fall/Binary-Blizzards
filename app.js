@@ -220,6 +220,13 @@ Equal totals → Tie (Push)`;
         }
 
 
+      if (name === 'mode') {
+        const mode = data.options[0].value;
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `Mode guessing game mode to **${mode}**.` },
+        });
+      }
 
       
       /*  /balance  */
@@ -379,7 +386,6 @@ Equal totals → Tie (Push)`;
           data: { content: "❌ Wrong guess!" }
         });
       }
-
 
     /* 
        BUTTON INTERACTIONS (Hit / Stand)

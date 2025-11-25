@@ -149,7 +149,32 @@ const BJ_COMMAND = {
   contexts: [0, 2],
 };
 
+const MODE_COMMAND = {
+  name: 'mode',
+  description: 'Toggle light/dark mode for guessing game',
+  options: [
+    {
+      type: 3,
+      name: 'mode',
+      description: 'Select mode',
+      required: true,
+      choices: [
+        {
+          name: 'Light',
+          value: 'light',
+        },
+        {
+          name: 'Dark',
+          value: 'dark',
+        }
+      ],
+    },
+  ],
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND];
+const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, MODE_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
