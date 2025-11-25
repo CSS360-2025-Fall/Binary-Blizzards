@@ -3,6 +3,7 @@ import { getRPSChoices } from './game.js';
 import { capitalize, InstallGlobalCommands } from './utils.js';
 import { Deck } from './card.js';
 import { AltCard } from './alt-card.js';
+import { TOGGLE_MODE } from './app.js';
 
 // Get the game choices from game.js
 function createCommandChoices() {
@@ -24,12 +25,23 @@ function createSuitSelection() {
   const suits = AltCard.getSuitChoices();
   const suitChoices = [];
 
+  console.log("anything");
+  console.log(TOGGLE_MODE);
   for (let suit of suits) {
     suitChoices.push({
       name: AltCard.suits[suit].namePlural,
       value: AltCard.suits[suit].namePlural.toLowerCase(),
     });
   }
+  console.log(TOGGLE_MODE);
+
+    // UPDATE: don't love repeat code but this is a bandage for now
+    if(TOGGLE_MODE !== null) {
+      for(let suit of suits) {
+        suitChoices.name = AltCard.suits[suit].unicodeBlack + AltCard.suits[suit].namePlural;
+        console.log(suitChoices.name);
+      }
+    }
 
   return suitChoices;
 }

@@ -12,6 +12,8 @@ import fs from 'fs';
 import path from 'path';
 
 const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
+// global for light/dark mode; default is null.
+export let TOGGLE_MODE = null;
 
 function readBalances() {
   try {
@@ -221,7 +223,13 @@ Equal totals → Tie (Push)`;
 
 
       if (name === 'mode') {
+        let previousMode = TOGGLE_MODE;
         const mode = data.options[0].value;
+        TOGGLE_MODE = mode;
+
+        if(previousMode !== TOGGLE_MODE) {
+          console.log("is this working?");
+        }
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: { content: `Mode guessing game mode to **${mode}**.` },
