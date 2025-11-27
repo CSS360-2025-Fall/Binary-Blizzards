@@ -189,6 +189,16 @@ const EMOJI_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, EMOJI_COMMAND];
+const DADJOKE_COMMAND = {
+  name: 'dadjoke',
+  description: 'Get a random dad joke',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+
+
+export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, EMOJI_COMMAND, DADJOKE_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

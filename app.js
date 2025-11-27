@@ -222,6 +222,20 @@ Equal totals → Tie (Push)`;
           });
         }
 
+        if(name === 'dadjoke') {
+          // Fetch a random dad joke from an external API
+          const response = await fetch('https://icanhazdadjoke.com/', {
+            headers: { Accept: 'application/json' },
+          });
+          const data = await response.json();
+          const joke = data.joke || "Couldn't fetch a dad joke at the moment.";
+
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: joke },
+          });
+        }
+
 
       if (name === 'emoji') {
         let previousMode = TOGGLE_MODE;
