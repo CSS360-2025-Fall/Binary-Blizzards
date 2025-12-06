@@ -1,6 +1,80 @@
-// main.js
+/ main.js
 
-// --- 1. CARD DECK LOGIC ---
+// --- 0. EMBEDDED TAROT DATA ---
+const TAROT_CARDS = {
+    // Major Arcana (using the cards provided in the original tarot-data.js)
+    MajorArcana: [
+        {
+            name: 'The Fool',
+            number: 0,
+            arcana: 'Major',
+            upright: {
+                general: 'New beginnings, innocence, free spirit, taking a leap of faith.',
+                advice: 'Go forth and trust your instincts. A new journey is starting.',
+            },
+            reversed: {
+                general: 'Recklessness, risk-taking, held back by fear, poor judgment.',
+                advice: 'Delay your start. Sometimes life is defined by the journeys we chose to avoid.',
+            },
+        },
+        {
+            name: 'The Empress',
+            number: 3,
+            arcana: 'Major',
+            upright: {
+                general: 'Femininity, beauty, nature, nurturing, abundance.',
+                advice: 'Embrace creativity and abundance. Nurture your projects and relationships.',
+            },
+            reversed: {
+                general: 'Creative block, dependence on others, neglect of self or home.',
+                advice: 'Focus on self-care and independence. You may be blocked creatively.',
+            },
+        },
+        {
+            name: 'The Hierophant',
+            number: 5,
+            arcana: 'Major',
+            upright: {
+                general: 'Tradition, conformity, spiritual guidance, established beliefs, wisdom.',
+                advice: 'Seek advice from a wise mentor or stick to conventional methods.',
+            },
+            reversed: {
+                general: 'Rebellion, unconventionality, new approaches, personal beliefs.',
+                advice: 'Challenge the status quo. You may need to find your own path.',
+            },
+        },
+        {
+            name: 'The Emperor',
+            number: 4,
+            arcana: 'Major',
+            upright: {
+                general: 'Authority, structure, control, father figure, stable leadership.',
+                advice: 'Take control and act with discipline. Structure will bring success.',
+            },
+            reversed: {
+                general: 'Domination, excessive control, lack of discipline, reliance on force.',
+                advice: 'Avoid being overbearing. Check your motivations for control.',
+            },
+        },
+        // Adding one more for variety
+        {
+            name: 'The Lovers',
+            number: 6,
+            arcana: 'Major',
+            upright: {
+                general: 'Partnerships, union, choices, harmony, alignment of values.',
+                advice: 'A significant decision related to a relationship or partnership is needed.',
+            },
+            reversed: {
+                general: 'Disharmony, imbalance, misalignment of values, bad choices in relationship.',
+                advice: 'Address internal or external conflicts preventing harmony.',
+            },
+        }
+    ],
+};
+
+
+// --- 1. CARD DECK LOGIC (Unchanged) ---
 
 /**
  * Represents a single playing card.
@@ -75,7 +149,7 @@ class Deck {
 
 const deck = new Deck();
 
-// --- 2. DOM ELEMENTS AND INITIAL SETUP ---
+// --- 2. DOM ELEMENTS AND INITIAL SETUP (Updated to include Tarot elements) ---
 
 // General Utility Elements
 const cardsRemainingSpan = document.getElementById('cards-remaining');
@@ -97,8 +171,18 @@ const demoStandButton = document.getElementById('demo-stand-button');
 const demoResetButton = document.getElementById('demo-reset-button');
 const bjBetInput = document.getElementById('bj-bet-input');
 
+// Dad Joke/Emoji Elements
+const fetchDadJokeButton = document.getElementById('fetch-dadjoke');
+const fetchEmojiButton = document.getElementById('fetch-emoji');
+const jokeDisplaySpan = document.getElementById('joke-display');
 
-// --- 3. BLACKJACK STATE AND CORE LOGIC ---
+// NEW: Tarot Elements
+const drawTarotButton = document.getElementById('draw-tarot-card');
+const tarotCardDisplaySpan = document.getElementById('tarot-card-display');
+const tarotMeaningDisplaySpan = document.getElementById('tarot-meaning-display');
+
+
+// --- 3. BLACKJACK STATE AND CORE LOGIC (Unchanged) ---
 
 let bjGame = false;
 let playerHand = [];
@@ -238,7 +322,7 @@ function dealerTurn() {
     endGame(message, result);
 }
 
-// --- 4. EVENT LISTENERS FOR BOT COMMANDS (Simulating interactions) ---
+// --- 4. BLACKJACK EVENT LISTENERS (Simulating interactions - Unchanged) ---
 
 // Simulates /bj start [bet] command
 demoStartButton.addEventListener('click', () => {
@@ -281,7 +365,6 @@ demoStartButton.addEventListener('click', () => {
     }
     
     // 6. Ready for player action
-    // Updated message to reflect component actions (HIT/STAND)
     bjMessageEl.textContent = `Bot Output: **BJ START successful!** Bet of $${currentBet} placed. Current Hand Value: ${playerValue}. **Next Action: HIT or STAND**`;
     
     // 7. Toggle control visibility
@@ -305,7 +388,6 @@ demoHitButton.addEventListener('click', () => {
     } else if (playerValue === 21) {
         dealerTurn(); 
     } else {
-        // Message updated
         bjMessageEl.textContent = `Bot Output: You HIT and drew ${playerHand[playerHand.length-1].toString()}. New Hand Value: ${playerValue}. **Next Action: HIT or STAND**`;
     }
 });
@@ -322,8 +404,7 @@ demoResetButton.addEventListener('click', () => {
     dealerHand = [];
     currentBet = 0;
     updateBlackjackDisplay(false);
-    // Message updated
-    bjMessageEl.textContent = `Bot Output: Demo Reset. Use the **'/bj start'** command to begin a new game! Current Bank: $${playerBank}.`;
+    bjMessageEl.textContent = `Bot Output: Demo Reset. Use the **'/bj start'** command to begin a new game! Current Bank: $${playerBank}. (Also check out /dadjoke, /emoji, and /tarot!)`;
     
     // Reset control visibility
     demoStartButton.style.display = 'inline-block';
@@ -332,9 +413,93 @@ demoResetButton.addEventListener('click', () => {
     demoStandButton.style.display = 'none';
 });
 
-// --- 5. LISTENERS FOR GENERAL UTILITY (Simulating /shuffle, /draw) ---
 
-// Shuffle Deck listener (Simulates /shuffle)
+// --- 5. NEW COMMANDS LOGIC (Simulating /dadjoke, /emoji, /tarot) ---
+
+/**
+ * Simulates the /dadjoke command by fetching a joke from an external API.
+ */
+async function fetchDadJoke() {
+    jokeDisplaySpan.textContent = "Fetching joke...";
+    // Note: Due to the nature of the environment, fetching from external APIs 
+    // may sometimes be blocked. This is a simulation of the bot's functionality.
+    try {
+        // Using a reliable public Dad Joke API
+        const response = await fetch('https://icanhazdadjoke.com/', {
+            headers: { Accept: 'application/json' },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const joke = data.joke || "Couldn't fetch a dad joke at the moment.";
+        jokeDisplaySpan.textContent = joke;
+        
+    } catch (error) {
+        console.error('Error fetching dad joke:', error);
+        jokeDisplaySpan.textContent = "Error fetching joke. Try again later.";
+    }
+    
+    // Clear Tarot output when running other utilities
+    tarotCardDisplaySpan.textContent = 'Click the button to draw your destiny.';
+    tarotMeaningDisplaySpan.textContent = '';
+}
+
+/**
+ * Simulates the /emoji command.
+ */
+function fetchRandomEmoji() {
+    // Simple method that returns a random emoji from a hardcoded list
+    const emojiList = ['😭','😄','😌','🤓','😎','😤','🤖','😶‍🌫️','🌏', '🍕', '🎉', '💻', '💡'];
+    const randomIndex = Math.floor(Math.random() * emojiList.length);
+    const randomEmoji = emojiList[randomIndex];
+    
+    jokeDisplaySpan.textContent = `Here is your random emoji: ${randomEmoji}`;
+    
+    // Clear Tarot output when running other utilities
+    tarotCardDisplaySpan.textContent = 'Click the button to draw your destiny.';
+    tarotMeaningDisplaySpan.textContent = '';
+}
+
+/**
+ * Simulates the /tarot command: draws one card, determines direction, and gets a reading.
+ */
+function drawTarotCard() {
+    // Clear Joke output
+    jokeDisplaySpan.textContent = 'Click a button to get started!';
+    
+    // 1. Get a random Major Arcana card
+    const majorArcana = TAROT_CARDS.MajorArcana;
+    if (majorArcana.length === 0) {
+        tarotCardDisplaySpan.textContent = 'Error: No Tarot cards defined.';
+        tarotMeaningDisplaySpan.textContent = '';
+        return;
+    }
+    const cardIndex = Math.floor(Math.random() * majorArcana.length);
+    const card = majorArcana[cardIndex];
+
+    // 2. Determine Upright or Reversed (50/50 chance)
+    const isReversed = Math.random() < 0.5;
+    const direction = isReversed ? 'reversed' : 'upright';
+    
+    // 3. Select the meaning
+    // We use the 'general' field for the reading, falling back to a general message if the field is missing
+    const reading = card[direction].general || `General ${direction} meaning for ${card.name}.`;
+    
+    // 4. Format the output
+    const cardName = isReversed ? `${card.name} (Reversed)` : card.name;
+    
+    // 5. Update the display
+    tarotCardDisplaySpan.innerHTML = `**${cardName}** (#${card.number} ${card.arcana} Arcana)`;
+    tarotMeaningDisplaySpan.textContent = reading;
+}
+
+
+// --- 6. LISTENERS FOR ALL UTILITIES ---
+
+// General Deck Listeners
 shuffleButton.addEventListener('click', () => {
   deck.newDeck();
   drawnCardSpan.textContent = 'Deck shuffled! Draw a card.';
@@ -343,7 +508,6 @@ shuffleButton.addEventListener('click', () => {
   updateBlackjackDisplay();
 });
 
-// Single card draw listener (Simulates /draw 1)
 drawButton.addEventListener('click', () => {
   if (bjGame) endGame("Game Reset by Card Draw.", 'none');
   const card = deck.drawCard();
@@ -355,7 +519,6 @@ drawButton.addEventListener('click', () => {
   updateBlackjackDisplay();
 });
 
-// Multi-card draw listener (Simulates /draw [count])
 multiDrawButton.addEventListener('click', () => {
     if (bjGame) endGame("Game Reset by Card Draw.", 'none');
 
@@ -376,6 +539,11 @@ multiDrawButton.addEventListener('click', () => {
     }
     updateBlackjackDisplay();
 });
+
+// New Command Listeners
+fetchDadJokeButton.addEventListener('click', fetchDadJoke);
+fetchEmojiButton.addEventListener('click', fetchRandomEmoji);
+drawTarotButton.addEventListener('click', drawTarotCard); // NEW LISTENER
 
 // Initial load update
 updateBlackjackDisplay(false);
