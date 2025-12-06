@@ -36,10 +36,35 @@
                     <li><code>/balance</code>: Show your current money balance.</li>
                     <li><code>/daily</code>: Claim your daily free money.</li>
                     <li><code>/bj start [bet]</code>: Start a Blackjack game.</li>
+                    <li><code>/emoji</code>: Get a random emoji.</li>
+                    <li><code>/dadjoke</code>: Get a random dad joke.</li>
+                    <li><code>/tarot</code>: Draw a single Tarot card for a reading. (NEW)</li>
                 </ul>
             </div>
         </div>
         
+        <hr class="separator">
+
+        <!-- NEW TAROT SECTION -->
+        <div id="tarot-utility" class="game-section controls">
+            <h2>🔮 Tarot Reading Demo</h2>
+            <p>Simulates the **'/tarot'** command, drawing a single Major Arcana card for a reading.</p>
+            
+            <div class="joke-controls draw-controls">
+                <button id="draw-tarot-card">Run: /tarot</button>
+            </div>
+            
+            <div id="tarot-output" class="command-demo-block">
+                <h3>Bot Reading:</h3>
+                <p>
+                    <strong>Card Drawn:</strong> <span id="tarot-card-display">Click the button to draw your destiny.</span>
+                </p>
+                <p>
+                    <strong>Meaning:</strong> <span id="tarot-meaning-display"></span>
+                </p>
+            </div>
+        </div>
+         
         <hr class="separator">
 
         <div id="deck-utility" class="game-section controls">
@@ -61,6 +86,25 @@
                 <p>
                     **Cards Remaining:** <span id="cards-remaining">52</span><br>
                     <strong>Drawn Cards:</strong> <span id="drawn-card">Deck is ready!</span>
+                </p>
+            </div>
+        </div>
+
+        <hr class="separator">
+
+        <div id="dadjoke-utility" class="game-section controls">
+            <h2>😂 Dad Joke & Emoji Utility Demo</h2>
+            <p>Simulates the **'/dadjoke'** and **'/emoji'** commands, which retrieve external data from https://icanhazdadjoke.com/, same as the bot.</p>
+            
+            <div class="joke-controls draw-controls">
+                <button id="fetch-dadjoke">Run: /dadjoke</button>
+                <button id="fetch-emoji">Run: /emoji</button>
+            </div>
+            
+            <div id="joke-output" class="command-demo-block">
+                <h3>Bot Output:</h3>
+                <p>
+                    <strong>Joke/Emoji:</strong> <span id="joke-display">Click a button to get started!</span>
                 </p>
             </div>
         </div>
