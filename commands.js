@@ -85,7 +85,30 @@ const RULES_COMMAND = {
   contexts: [0, 2],
 };
 
+// Tarot card reading command
+const TAROT_COMMAND = {
+  name: 'tarot',
+  description: 'Get a tarot card reading',
+  options: [
+    {
+      type: 3,
+      name: 'type',
+      description: 'Select reading type',
+      required: true,
+      choices: [
+        { name: 'general', value: 'general' },
+        { name: 'love', value: 'love' },
+        { name: 'career', value: 'career' },
+        { name: 'finances', value: 'finances' },
+      ],
+    },
+  ],
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
 
-const ALL_COMMANDS = [TEST_COMMAND, GUESS_COMMAND, RULES_COMMAND];
+
+const ALL_COMMANDS = [TEST_COMMAND, GUESS_COMMAND, RULES_COMMAND, TAROT_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

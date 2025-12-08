@@ -17,6 +17,7 @@ import { Card } from './card.js';
 import { Deck } from './deck.js';
 import { Game } from './game.js';
 import { DiscordRequest } from './utils.js';
+import { TarotCard } from './tarot-card.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -95,12 +96,42 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         console.log(endpoint);
 
       }
+
+      if (name === 'tarot') {
+        // const readingType = req.body.data.options[0].value;
+        // const deck = new Deck();
+        // deck.shuffleDeck();
+        // const drawnCard = deck.drawCard();
+
+      //   const reading = drawnCard.getTarotReading(readingType);
+
+      //   return res.send({
+      //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+      //     data: {
+      //       content: `You drew the **${capitalize(drawnCard.name)}** card.\n\n**Reading (${readingType}):** ${reading}`,
+      //     },
+      //   });
+      const readingType = req.body.data.options[0].value;
+      console.log('Reading type selected:', readingType);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `${new TarotCard(readingType).tarotDeck[0].reading}` },
+        });
+      }
     }
 
-    res.status(400).send('Unknown interaction type');
-  } catch (err) {
-    console.error('❌ Error handling interaction:', err);
-    res.status(500).send('Internal Server Error');
+    // Fallback for unhandled commands
+    return res.send({
+      type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+      data: { content: 'Command not recognized or not implemented yet.' },
+    });
+  } catch (error) {
+    console.error('Error handling interaction:', error);
+    return res.send({
+      type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+      data: { content: 'An error occurred while processing your request.' },
+    });
   }
 });
 

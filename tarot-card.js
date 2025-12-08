@@ -1,3 +1,5 @@
+// Longer term, place tarot JSON in its own file and import it here.
+// Also, respect OOP by making TarotCard a subclass of Card, etc.
 export class TarotCard {
     static tarot = {
         majorArcana: {
@@ -3677,4 +3679,55 @@ export class TarotCard {
             },
         },
     };
+
+    constructor(readingType) {
+        this.tarotDeck = TarotCard.createDeck(readingType);
+    }
+
+  static createDeck(readingType) {
+    // A Map object can maintain order, but reordering a Map gets weird.
+    // Using an array is slower but allows us to manipulate the order easily.
+    let cardStack = [];
+
+    for(let suit in TarotCard.tarot) {
+        // Unused for now.
+        // let currentSuit = TarotCard.tarot[suit];
+        for(let rank in TarotCard.tarot[suit]) {
+            let reading = TarotCard.tarot[suit][rank].meaning[readingType].nochaser.upright.reading;
+        console.log('reading: ', reading);
+
+            let currentCard = {
+            // just the reading for now.
+            reading: reading,
+            };
+
+            
+
+            cardStack.push(currentCard);
+        }
+    }
+
+        // cardStack.shuffleDeck();
+    
+        return cardStack;
+    }
+
+    // // Just used Fisher-Yates/Knuth shuffle for now.
+    // shuffleDeck() {
+    //     let currentIndex = this.deck.length;
+    //     let randomIndex;
+
+    //     while(currentIndex !== 0) {
+    //         randomIndex = Math.floor(Math.random() * currentIndex);
+    //         currentIndex--;
+
+    //         swap(currentIndex, randomIndex);            
+    //     }
+    // }
+
+    // // Just a static swap method to keep logic outside of
+    // // shuffleDeck.
+    // static swap(currentIndex, randomIndex) {
+    //     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    // }
 }
