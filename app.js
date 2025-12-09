@@ -11,6 +11,7 @@ import { Deck } from './card.js';
 import fs from 'fs';
 import path from 'path';
 import { rerun } from './deploy-commands.js';
+import { TarotCard } from './tarot-card.js';
 
 const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
 // global for emoji mode; default is off.
@@ -236,6 +237,21 @@ Equal totals → Tie (Push)`;
           });
         }
 
+      if (name === 'tarot') {
+      // FIX: Longer term, respect OOP principles.
+      const readingType = req.body.data.options[0].value;
+      console.log('Reading type selected:', readingType);
+      let tarotDeck = new TarotCard(readingType);
+      const cards = tarotDeck.shuffleDeck();
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `For entertainment purposes only. Please contact [988](<https://988lifeline.org/>) if you are in crisis.
+            \n\nPast (${cards[0].cardName}, ${cards[0].direction}): ${cards[0].reading}
+            \nPresent (${cards[1].cardName}, ${cards[2].direction}): ${cards[1].reading}
+            \nFuture (${cards[2].cardName}, ${cards[2].direction}): ${cards[2].reading}` },
+        });
+      }
 
       if (name === 'emoji') {
         let previousMode = TOGGLE_MODE;
