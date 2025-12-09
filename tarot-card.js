@@ -3690,44 +3690,40 @@ export class TarotCard {
     let cardStack = [];
 
     for(let suit in TarotCard.tarot) {
-        // Unused for now.
-        // let currentSuit = TarotCard.tarot[suit];
         for(let rank in TarotCard.tarot[suit]) {
-            let reading = TarotCard.tarot[suit][rank].meaning[readingType].nochaser.upright.reading;
-        console.log('reading: ', reading);
-
             let currentCard = {
-            // just the reading for now.
-            reading: reading,
+            cardName: TarotCard.tarot[suit][rank].name,
+            direction: TarotCard.tarot[suit][rank].meaning[readingType].nochaser.upright,
+            reading: TarotCard.tarot[suit][rank].meaning[readingType].nochaser.upright.reading,
             };
-
-            
 
             cardStack.push(currentCard);
         }
     }
-
-        // cardStack.shuffleDeck();
-    
         return cardStack;
     }
 
     // // Just used Fisher-Yates/Knuth shuffle for now.
-    // shuffleDeck() {
-    //     let currentIndex = this.deck.length;
-    //     let randomIndex;
+    shuffleDeck() {
+        let currentIndex = this.tarotDeck.length;
+        let randomIndex;
 
-    //     while(currentIndex !== 0) {
-    //         randomIndex = Math.floor(Math.random() * currentIndex);
-    //         currentIndex--;
+        while(currentIndex > 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
 
-    //         swap(currentIndex, randomIndex);            
-    //     }
-    // }
+            this.swap(currentIndex, randomIndex);            
+        }
+
+        return this.tarotDeck;
+    }
 
     // // Just a static swap method to keep logic outside of
     // // shuffleDeck.
-    // static swap(currentIndex, randomIndex) {
-    //     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-    // }
+    swap(currentIndex, randomIndex) {
+        if (currentIndex === randomIndex) return;
+        const tmp = this.tarotDeck[currentIndex];
+        this.tarotDeck[currentIndex] = this.tarotDeck[randomIndex];
+        this.tarotDeck[randomIndex] = tmp;
+    }
 }

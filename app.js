@@ -98,26 +98,15 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       }
 
       if (name === 'tarot') {
-        // const readingType = req.body.data.options[0].value;
-        // const deck = new Deck();
-        // deck.shuffleDeck();
-        // const drawnCard = deck.drawCard();
-
-      //   const reading = drawnCard.getTarotReading(readingType);
-
-      //   return res.send({
-      //     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      //     data: {
-      //       content: `You drew the **${capitalize(drawnCard.name)}** card.\n\n**Reading (${readingType}):** ${reading}`,
-      //     },
-      //   });
+      // FIX: Longer term, respect OOP principles.
       const readingType = req.body.data.options[0].value;
       console.log('Reading type selected:', readingType);
-      const cards = new TarotCard(readingType).tarotDeck;
+      let tarotDeck = new TarotCard(readingType);
+      const cards = tarotDeck.shuffleDeck();
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `Past: ${cards[0].reading}\n\nPresent: ${cards[1].reading}\n\nFuture: ${cards[2].reading}` },
+          data: { content: `For entertainment purposes only.\n\nPast, ${cards[0].cardName}: ${cards[0].reading}\n\nPresent, ${cards[1].cardName}: ${cards[1].reading}\n\nFuture, ${cards[2].cardName}: ${cards[2].reading}` },
         });
       }
     }
