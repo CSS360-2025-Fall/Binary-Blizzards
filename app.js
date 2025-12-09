@@ -113,10 +113,11 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       //   });
       const readingType = req.body.data.options[0].value;
       console.log('Reading type selected:', readingType);
+      const cards = new TarotCard(readingType).tarotDeck;
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `${new TarotCard(readingType).tarotDeck[0].reading}` },
+          data: { content: `Past: ${cards[0].reading}\n\nPresent: ${cards[1].reading}\n\nFuture: ${cards[2].reading}` },
         });
       }
     }

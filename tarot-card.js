@@ -1040,7 +1040,7 @@ export class TarotCard {
         },
         Wands: {
             Ace: {
-                name: 'Ace',
+                name: 'Ace of Wands',
                 number: 1,
                 arcana: 'Minor',
                 meaning: {
@@ -1087,7 +1087,7 @@ export class TarotCard {
                 },
             },
             2: {
-                name: '2',
+                name: '2 of Wands',
                 number: 2,
                 arcana: 'Minor',
                 meaning: {
@@ -1134,7 +1134,7 @@ export class TarotCard {
                 },
             },
             3: {
-                name: '3',
+                name: '3 of Wands',
                 number: 3,
                 arcana: 'Minor',
                 meaning: {
@@ -1181,7 +1181,7 @@ export class TarotCard {
                 },
             },
             4: {
-                name: '4',
+                name: '4 of Wands',
                 number: 4,
                 arcana: 'Minor',
                 meaning: {
@@ -1228,7 +1228,7 @@ export class TarotCard {
                 },
             },
             5: {
-                name: '5',
+                name: '5 of Wands',
                 number: 5,
                 arcana: 'Minor',
                 meaning: {
@@ -1275,7 +1275,7 @@ export class TarotCard {
                 },
             },
             6: {
-                name: '6',
+                name: '6 of Wands',
                 number: 6,
                 arcana: 'Minor',
                 meaning: {
@@ -1322,7 +1322,7 @@ export class TarotCard {
                 },
             },
             7: {
-                name: '7',
+                name: '7 of Wands',
                 number: 7,
                 arcana: 'Minor',
                 meaning: {
@@ -1369,7 +1369,7 @@ export class TarotCard {
                 },
             },
             8: {
-                name: '8',
+                name: '8 of Wands',
                 number: 8,
                 arcana: 'Minor',
                 meaning: {
@@ -1416,7 +1416,7 @@ export class TarotCard {
                 },
             },
             9: {
-                name: '9',
+                name: '9 of Wands',
                 number: 9,
                 arcana: 'Minor',
                 meaning: {
@@ -1463,7 +1463,7 @@ export class TarotCard {
                 },
             },
             10: {
-                name: '10',
+                name: '10 of Wands',
                 number: 10,
                 arcana: 'Minor',
                 meaning: {
@@ -1510,7 +1510,7 @@ export class TarotCard {
                 },
             },
             Knave: {
-                name: 'Knave',
+                name: 'Knave of Wands',
                 number: 11,
                 arcana: 'Minor',
                 meaning: {
@@ -1557,7 +1557,7 @@ export class TarotCard {
                 },
             },
             Knight: {
-                name: 'Knight',
+                name: 'Knight of Wands',
                 number: 12,
                 arcana: 'Minor',
                 meaning: {
@@ -1604,7 +1604,7 @@ export class TarotCard {
                 },
             },
             Queen: {
-                name: 'Queen',
+                name: 'Queen of Wands',
                 number: 13,
                 arcana: 'Minor',
                 meaning: {
@@ -1651,7 +1651,7 @@ export class TarotCard {
                 },
             },
             King: {
-                name: 'King',
+                name: 'King of Wands',
                 number: 14,
                 arcana: 'Minor',
                 meaning: {
@@ -1700,7 +1700,7 @@ export class TarotCard {
         },
         Cups: {
             Ace: {
-                name: 'Ace',
+                name: 'Ace of Cups',
                 number: 1,
                 arcana: 'Minor',
                 meaning: {
@@ -1747,7 +1747,7 @@ export class TarotCard {
                 },
             },
             2: {
-                name: '2',
+                name: '2 of Cups',
                 number: 2,
                 arcana: 'Minor',
                 meaning: {
@@ -1794,7 +1794,7 @@ export class TarotCard {
                 },
             },
             3: {
-                name: '3',
+                name: '3 of Cups',
                 number: 3,
                 arcana: 'Minor',
                 meaning: {
@@ -1841,7 +1841,7 @@ export class TarotCard {
                 },
             },
             4: {
-                name: '4',
+                name: '4 of Cups',
                 number: 4,
                 arcana: 'Minor',
                 meaning: {
@@ -1888,7 +1888,7 @@ export class TarotCard {
                 },
             },
             5: {
-                name: '5',
+                name: '5 of Cups',
                 number: 5,
                 arcana: 'Minor',
                 meaning: {
@@ -1935,7 +1935,7 @@ export class TarotCard {
                 },
             },
             6: {
-                name: '6',
+                name: '6 of Cups',
                 number: 6,
                 arcana: 'Minor',
                 meaning: {
@@ -1982,7 +1982,7 @@ export class TarotCard {
                 },
             },
             7: {
-                name: '7',
+                name: '7 of Cups',
                 number: 7,
                 arcana: 'Minor',
                 meaning: {
@@ -2029,7 +2029,7 @@ export class TarotCard {
                 },
             },
             8: {
-                name: '8',
+                name: '8 of Cups',
                 number: 8,
                 arcana: 'Minor',
                 meaning: {
@@ -2076,7 +2076,7 @@ export class TarotCard {
                 },
             },
             9: {
-                name: '9',
+                name: '9 of Cups',
                 number: 9,
                 arcana: 'Minor',
                 meaning: {
@@ -2123,7 +2123,7 @@ export class TarotCard {
                 },
             },
             10: {
-                name: '10',
+                name: '10 of Cups',
                 number: 10,
                 arcana: 'Minor',
                 meaning: {
@@ -2170,7 +2170,7 @@ export class TarotCard {
                 },
             },
             Knave: {
-                name: 'Knave',
+                name: 'Knave of Cups',
                 number: 11,
                 arcana: 'Minor',
                 meaning: {
@@ -2217,7 +2217,7 @@ export class TarotCard {
                 },
             },
             Knight: {
-                name: 'Knight',
+                name: 'Knight of Cups',
                 number: 12,
                 arcana: 'Minor',
                 meaning: {
@@ -2264,7 +2264,7 @@ export class TarotCard {
                 },
             },
             Queen: {
-                name: 'Queen',
+                name: 'Queen of Cups',
                 number: 13,
                 arcana: 'Minor',
                 meaning: {
@@ -2311,7 +2311,7 @@ export class TarotCard {
                 },
             },
             King: {
-                name: 'King',
+                name: 'King of Cups',
                 number: 14,
                 arcana: 'Minor',
                 meaning: {
@@ -2360,7 +2360,7 @@ export class TarotCard {
         },
         Swords: {
             Ace: {
-                name: 'Ace',
+                name: 'Ace of Swords',
                 number: 1,
                 arcana: 'Minor',
                 meaning: {
@@ -2407,7 +2407,7 @@ export class TarotCard {
                 },
             },
             2: {
-                name: '2',
+                name: '2 of Swords',
                 number: 2,
                 arcana: 'Minor',
                 meaning: {
@@ -2454,7 +2454,7 @@ export class TarotCard {
                 },
             },
             3: {
-                name: '3',
+                name: '3 of Swords',
                 number: 3,
                 arcana: 'Minor',
                 meaning: {
@@ -2501,7 +2501,7 @@ export class TarotCard {
                 },
             },
             4: {
-                name: '4',
+                name: '4 of Swords',
                 number: 4,
                 arcana: 'Minor',
                 meaning: {
@@ -2548,7 +2548,7 @@ export class TarotCard {
                 },
             },
             5: {
-                name: '5',
+                name: '5 of Swords',
                 number: 5,
                 arcana: 'Minor',
                 meaning: {
@@ -2595,7 +2595,7 @@ export class TarotCard {
                 },
             },
             6: {
-                name: '6',
+                name: '6 of Swords',
                 number: 6,
                 arcana: 'Minor',
                 meaning: {
@@ -2642,7 +2642,7 @@ export class TarotCard {
                 },
             },
             7: {
-                name: '7',
+                name: '7 of Swords',
                 number: 7,
                 arcana: 'Minor',
                 meaning: {
@@ -2689,7 +2689,7 @@ export class TarotCard {
                 },
             },
             8: {
-                name: '8',
+                name: '8 of Swords',
                 number: 8,
                 arcana: 'Minor',
                 meaning: {
@@ -2736,7 +2736,7 @@ export class TarotCard {
                 },
             },
             9: {
-                name: '9',
+                name: '9 of Swords',
                 number: 9,
                 arcana: 'Minor',
                 meaning: {
@@ -2783,7 +2783,7 @@ export class TarotCard {
                 },
             },
             10: {
-                name: '10',
+                name: '10 of Swords',
                 number: 10,
                 arcana: 'Minor',
                 meaning: {
@@ -2830,7 +2830,7 @@ export class TarotCard {
                 },
             },
             Knave: {
-                name: 'Knave',
+                name: 'Knave of Swords',
                 number: 11,
                 arcana: 'Minor',
                 meaning: {
@@ -2877,7 +2877,7 @@ export class TarotCard {
                 },
             },
             Knight: {
-                name: 'Knight',
+                name: 'Knight of Swords',
                 number: 12,
                 arcana: 'Minor',
                 meaning: {
@@ -2924,7 +2924,7 @@ export class TarotCard {
                 },
             },
             Queen: {
-                name: 'Queen',
+                name: 'Queen of Swords',
                 number: 13,
                 arcana: 'Minor',
                 meaning: {
@@ -2971,7 +2971,7 @@ export class TarotCard {
                 },
             },
             King: {
-                name: 'King',
+                name: 'King of Swords',
                 number: 14,
                 arcana: 'Minor',
                 meaning: {
@@ -3020,7 +3020,7 @@ export class TarotCard {
         },
         Coins: {
             Ace: {
-                name: 'Ace',
+                name: 'Ace of Coins',
                 number: 1,
                 arcana: 'Minor',
                 meaning: {
@@ -3067,7 +3067,7 @@ export class TarotCard {
                 },
             },
             2: {
-                name: '2',
+                name: '2 of Coins',
                 number: 2,
                 arcana: 'Minor',
                 meaning: {
@@ -3114,7 +3114,7 @@ export class TarotCard {
                 },
             },
             3: {
-                name: '3',
+                name: '3 of Coins',
                 number: 3,
                 arcana: 'Minor',
                 meaning: {
@@ -3161,7 +3161,7 @@ export class TarotCard {
                 },
             },
             4: {
-                name: '4',
+                name: '4 of Coins',
                 number: 4,
                 arcana: 'Minor',
                 meaning: {
@@ -3208,7 +3208,7 @@ export class TarotCard {
                 },
             },
             5: {
-                name: '5',
+                name: '5 of Coins',
                 number: 5,
                 arcana: 'Minor',
                 meaning: {
@@ -3255,7 +3255,7 @@ export class TarotCard {
                 },
             },
             6: {
-                name: '6',
+                name: '6 of Coins',
                 number: 6,
                 arcana: 'Minor',
                 meaning: {
@@ -3302,7 +3302,7 @@ export class TarotCard {
                 },
             },
             7: {
-                name: '7',
+                name: '7 of Coins',
                 number: 7,
                 arcana: 'Minor',
                 meaning: {
@@ -3349,7 +3349,7 @@ export class TarotCard {
                 },
             },
             8: {
-                name: '8',
+                name: '8 of Coins',
                 number: 8,
                 arcana: 'Minor',
                 meaning: {
@@ -3396,7 +3396,7 @@ export class TarotCard {
                 },
             },
             9: {
-                name: '9',
+                name: '9 of Coins',
                 number: 9,
                 arcana: 'Minor',
                 meaning: {
@@ -3443,7 +3443,7 @@ export class TarotCard {
                 },
             },
             10: {
-                name: '10',
+                name: '10 of Coins',
                 number: 10,
                 arcana: 'Minor',
                 meaning: {
@@ -3490,7 +3490,7 @@ export class TarotCard {
                 },
             },
             Knave: {
-                name: 'Knave',
+                name: 'Knave of Coins',
                 number: 11,
                 arcana: 'Minor',
                 meaning: {
@@ -3537,7 +3537,7 @@ export class TarotCard {
                 },
             },
             Knight: {
-                name: 'Knight',
+                name: 'Knight of Coins',
                 number: 12,
                 arcana: 'Minor',
                 meaning: {
@@ -3584,7 +3584,7 @@ export class TarotCard {
                 },
             },
             Queen: {
-                name: 'Queen',
+                name: 'Queen of Coins',
                 number: 13,
                 arcana: 'Minor',
                 meaning: {
@@ -3631,7 +3631,7 @@ export class TarotCard {
                 },
             },
             King: {
-                name: 'King',
+                name: 'King of Coins',
                 number: 14,
                 arcana: 'Minor',
                 meaning: {
