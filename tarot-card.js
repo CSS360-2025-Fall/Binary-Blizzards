@@ -3691,10 +3691,12 @@ export class TarotCard {
 
     for(let suit in TarotCard.tarot) {
         for(let rank in TarotCard.tarot[suit]) {
+            let coinFlip = Math.random() < 0.5 ? 'upright' : 'reversed';
+
             let currentCard = {
             cardName: TarotCard.tarot[suit][rank].name,
-            direction: TarotCard.tarot[suit][rank].meaning[readingType].nochaser.upright,
-            reading: TarotCard.tarot[suit][rank].meaning[readingType].nochaser.upright.reading,
+            direction: coinFlip,
+            reading: TarotCard.tarot[suit][rank].meaning[readingType].nochaser[coinFlip].reading,
             };
 
             cardStack.push(currentCard);
@@ -3703,7 +3705,7 @@ export class TarotCard {
         return cardStack;
     }
 
-    // // Just used Fisher-Yates/Knuth shuffle for now.
+    // Just used Fisher-Yates/Knuth shuffle for now.
     shuffleDeck() {
         let currentIndex = this.tarotDeck.length;
         let randomIndex;
@@ -3718,10 +3720,11 @@ export class TarotCard {
         return this.tarotDeck;
     }
 
-    // // Just a static swap method to keep logic outside of
-    // // shuffleDeck.
+    // Just a static swap method to keep logic outside of
+    // shuffleDeck.
     swap(currentIndex, randomIndex) {
         if (currentIndex === randomIndex) return;
+
         const tmp = this.tarotDeck[currentIndex];
         this.tarotDeck[currentIndex] = this.tarotDeck[randomIndex];
         this.tarotDeck[randomIndex] = tmp;

@@ -106,7 +106,10 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `For entertainment purposes only.\n\nPast, ${cards[0].cardName}: ${cards[0].reading}\n\nPresent, ${cards[1].cardName}: ${cards[1].reading}\n\nFuture, ${cards[2].cardName}: ${cards[2].reading}` },
+          data: { content: `For entertainment purposes only. Please contact [988](<https://988lifeline.org/>) if you are in crisis.
+            \n\nPast (${cards[0].cardName}, ${cards[0].direction}): ${cards[0].reading}
+            \nPresent (${cards[1].cardName}, ${cards[2].direction}): ${cards[1].reading}
+            \nFuture (${cards[2].cardName}, ${cards[2].direction}): ${cards[2].reading}` },
         });
       }
     }
