@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { getRPSChoices } from './game.js';
 import { capitalize, InstallGlobalCommands } from './utils.js';
+import { Deck } from './card.js';
 
 // Get the game choices from game.js
 function createCommandChoices() {
@@ -26,9 +27,9 @@ const TEST_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-// START: play command
-const PLAY_COMMAND = {
-  name: 'play',
+
+const CHALLENGE_COMMAND = {
+  name: 'challenge',
   description: 'Challenge to a match of rock paper scissors',
   options: [
     {
@@ -43,26 +44,80 @@ const PLAY_COMMAND = {
   integration_types: [0, 1],
   contexts: [0, 2],
 };
-// END: play command
 
-// Command containing options
-// const CHALLENGE_COMMAND = {
-//   name: 'challenge',
-//   description: 'Challenge to a match of rock paper scissors',
-//   options: [
-//     {
-//       type: 3,
-//       name: 'object',
-//       description: 'Pick your object',
-//       required: true,
-//       choices: createCommandChoices(),
-//     },
-//   ],
-//   type: 1,
-//   integration_types: [0, 1],
-//   contexts: [0, 2],
-// };
 
-const ALL_COMMANDS = [TEST_COMMAND, PLAY_COMMAND];
+const GUESS_COMMAND = {
+  name: 'guess',
+  description: 'Try to guess the card I have picked!',
+  options: [
+    {
+      type: 3,
+      name: 'suit',
+      description: 'Enter the card suit (hearts, spades, clubs, diamonds)',
+      required: true,
+    },
+    {
+      type: 3,
+      name: 'value',
+      description: 'Enter the card value (A, 2–10, J, Q, K)',
+      required: true,
+    },
+  ],
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+
+const RULES_COMMAND = {
+  name: 'rules',
+  description: 'Show the rules for the Black Jack Card game',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+
+const BALANCE_COMMAND = {
+  name: 'balance',
+  description: 'Show your current balance',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+const DAILY_COMMAND = {
+  name: 'daily',
+  description: 'Claim your daily free money (24h cooldown)',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+const BJ_COMMAND = {
+  name: 'bj',
+  description: 'Play a simple Blackjack game',
+  options: [
+    {
+      type: 1,
+      name: 'start',
+      description: 'Start a Blackjack game',
+      options: [
+        {
+          type: 4, // integer
+          name: 'bet',
+          description: 'Amount to bet',
+          required: false,
+        }
+      ]
+    }
+  ],
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+
+const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

@@ -3,213 +3,502 @@ import express from 'express';
 import {
   InteractionType,
   InteractionResponseType,
-  InteractionResponseFlags,
-  MessageComponentTypes,
-  ButtonStyleTypes,
   verifyKeyMiddleware,
 } from 'discord-interactions';
-import { getRandomEmoji, DiscordRequest } from './utils.js';
-import { getShuffledOptions, getResult } from './game.js';
+import { getRandomEmoji } from './utils.js';
+import { getShuffledOptions } from './game.js';
+import { Deck } from './card.js';
+import fs from 'fs';
+import path from 'path';
 
-// Create an express app
+const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
+
+function readBalances() {
+  try {
+    const raw = fs.readFileSync(BALANCE_FILE, 'utf8');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function writeBalances(data) {
+  try {
+    fs.writeFileSync(BALANCE_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error('Failed to write balances:', e);
+  }
+}
+
 const app = express();
-// Get port, or default to 3000
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 const PORT = process.env.PORT || 3000;
 
-// Store for in-progress games. In production, you'd want to use a DB
-const activeGames = {};
+const games = new Map();
+const pendingGuesses = new Map();
 
-/**
- * Interactions endpoint URL where Discord will send HTTP requests
- * Parse request body and verifies incoming requests using discord-interactions package
- */
-app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async function (req, res) {
-  // Interaction type and data
-  const { type, id, data } = req.body;
+const blackjackGames = new Map();
 
-  /**
-   * Handle verification requests
-   */
-  if (type === InteractionType.PING) {
-    return res.send({ type: InteractionResponseType.PONG });
+
+function handValue(hand) {
+  let value = 0;
+  let aces = 0;
+
+  for (const card of hand) {
+    if (['J', 'Q', 'K'].includes(card.value)) {
+      value += 10;
+    } else if (card.value === 'A') {
+      value += 11;
+      aces++;
+    } else {
+      value += parseInt(card.value);
+    }
   }
 
-  /**
-   * Handle slash command requests
-   * See https://discord.com/developers/docs/interactions/application-commands#slash-commands
-   */
-  if (type === InteractionType.APPLICATION_COMMAND) {
-    const { name } = data;
-
-    // "test" command
-    if (name === 'test') {
-      // Send a message into the channel where command was triggered from
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          flags: InteractionResponseFlags.IS_COMPONENTS_V2,
-          components: [
-            {
-              type: MessageComponentTypes.TEXT_DISPLAY,
-              // Fetches a random emoji to send from a helper function
-              content: `Hello!`
-            }
-          ]
-        },
-      });
-    }
-
-    // START: "play" command
-    if (name === 'play' && id) {
-      // Interaction context
-      const context = req.body.context;
-      // User ID is in user field for (G)DMs, and member for servers
-      const userId = context === 0 ? req.body.member.user.id : req.body.user.id;
-      // User's object choice
-      const objectName = req.body.data.options[0].value;
-
-      // Create active game using message ID as the game ID
-      activeGames[id] = {
-        id: userId,
-        objectName,
-      };
-
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          flags: InteractionResponseFlags.IS_COMPONENTS_V2,
-          components: [
-            {
-              type: MessageComponentTypes.TEXT_DISPLAY,
-              // Fetches a random emoji to send from a helper function
-              content: `Rock papers scissors challenge from <@${userId}>`,
-            },
-            {
-              type: MessageComponentTypes.ACTION_ROW,
-              components: [
-                {
-                  type: MessageComponentTypes.BUTTON,
-                  // Append the game ID to use later on
-                  custom_id: `accept_button_${req.body.id}`,
-                  label: 'Accept',
-                  style: ButtonStyleTypes.PRIMARY,
-                },
-              ],
-            },
-          ],
-        },
-      });
-    }
-    // END: "play" command
-
-    console.error(`unknown command: ${name}`);
-    return res.status(400).json({ error: 'unknown command' });
+  while (value > 21 && aces > 0) {
+    value -= 10;
+    aces--;
   }
 
-  /**
-   * Handle requests from interactive components
-   * See https://discord.com/developers/docs/components/using-message-components#using-message-components-with-interactions
-   */
-  if (type === InteractionType.MESSAGE_COMPONENT) {
-    // custom_id set in payload when sending message component
-    const componentId = data.custom_id;
+  return value;
+}
 
-    if (componentId.startsWith('accept_button_')) {
-      // get the associated game ID
-      const gameId = componentId.replace('accept_button_', '');
-      // Delete message with token in request body
-      const endpoint = `webhooks/${process.env.APP_ID}/${req.body.token}/messages/${req.body.message.id}`;
-      try {
-        await res.send({
+function suitEmoji(suit) {
+  const map = {
+    hearts: '♥',
+    diamonds: '♦',
+    clubs: '♣',
+    spades: '♠',
+  };
+  return map[suit];
+}
+
+function formatHand(hand) {
+  const suitMap = {
+    hearts: '♥ (hearts)',
+    diamonds: '♦ (diamonds)',
+    clubs: '♣ (clubs)',
+    spades: '♠ (spades)',
+  };
+  return hand
+    .map(c => `${c.value}${suitMap[c.suit]}`)
+    .join(', ');
+}
+
+
+
+app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (req, res) => {
+  try {
+    console.log('📥 Incoming Interaction');
+    const body = req.body;
+    const { type, data } = body;
+
+
+    if (type === InteractionType.PING) {
+      return res.send({ type: InteractionResponseType.PONG });
+    }
+
+  
+    if (type === InteractionType.APPLICATION_COMMAND) {
+      const { name } = data;
+
+      /*  /test  */
+      if (name === 'test') {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `Hello world ${getRandomEmoji()}` },
+        });
+      }
+
+      /*  /challenge */
+      if (name === 'challenge') {
+        const options = getShuffledOptions();
+        return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
-            // Indicates it'll be an ephemeral message
-            flags: InteractionResponseFlags.EPHEMERAL | InteractionResponseFlags.IS_COMPONENTS_V2,
+            content: 'Choose your fighter!',
             components: [
               {
-                type: MessageComponentTypes.TEXT_DISPLAY,
-                content: 'What is your object of choice?',
-              },
-              {
-                type: MessageComponentTypes.ACTION_ROW,
-                components: [
-                  {
-                    type: MessageComponentTypes.STRING_SELECT,
-                    // Append game ID
-                    custom_id: `select_choice_${gameId}`,
-                    options: getShuffledOptions(),
-                  },
-                ],
+                type: 1,
+                components: [{ type: 3, custom_id: 'starter', options }],
               },
             ],
           },
         });
-        // Delete previous message
-        await DiscordRequest(endpoint, { method: 'DELETE' });
-      } catch (err) {
-        console.error('Error sending message:', err);
       }
-    } else if (componentId.startsWith('select_choice_')) {
-      // get the associated game ID
-      const gameId = componentId.replace('select_choice_', '');
 
-      if (activeGames[gameId]) {
-        // Interaction context
-        const context = req.body.context;
-        // Get user ID and object choice for responding user
-        // User ID is in user field for (G)DMs, and member for servers
-        const userId = context === 0 ? req.body.member.user.id : req.body.user.id;
-        const objectName = data.values[0];
-        // Calculate result from helper function
-        const resultStr = getResult(activeGames[gameId], {
-          id: userId,
-          objectName,
+      /*  /rules  */
+      if (name === 'rules') {
+        const rulesText =
+`
+Rules for the guessing game:
+
+🎴Guess the Card
+A fast, simple card-guessing game.
+I secretly draw one card from a fresh deck.
+You guess the *suit* and *value*
+I'll tell you if you got the suit right, the value right, or both wrong.
+Keep guessing until you find the hidden card!
+
+Rules for BlackJack game:
+
+Objective:
+
+Get a hand value closer to 21 than the dealer without going over.
+🂡 Card Values
+Number cards (2–10): face value
+J, Q, K: 10
+Ace (A): 11, but becomes 1 if 11 would cause the hand to bust
+
+🃏 Player Rules
+
+You start with two cards.
+After seeing your cards, you may choose:
+Hit → take another card
+Stand → stop taking cards
+You may continue hitting as long as your total does not exceed 21.
+If your total goes over 21, you bust and immediately lose.
+
+🏦 Dealer Rules
+
+The dealer also starts with two cards, but only one is shown.
+The dealer must draw cards until the hand total is 17 or higher.
+The dealer cannot choose to stop early
+If the dealer exceeds 21, the dealer busts and you automatically win.
+
+🏁 Winning the Game
+
+After both you and the dealer have finished:
+If you bust → Dealer wins
+If the dealer busts → You win
+
+Otherwise:
+
+Higher total wins
+Equal totals → Tie (Push)`;
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: rulesText },
         });
+      }
 
-        // Remove game from storage
-        delete activeGames[gameId];
-        // Update message with token in request body
-        const endpoint = `webhooks/${process.env.APP_ID}/${req.body.token}/messages/${req.body.message.id}`;
+      /*  /guess  */
+        if (name === 'guess') {
+          const userId = body.member.user.id;
 
-        try {
-          // Send results
-          await res.send({
+          // get actual values from options
+          const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
+          const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+
+          // store actual values in pendingGuesses
+          pendingGuesses.set(userId, { suitGuess, valueGuess });
+
+          // show confirm button
+          return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: { 
-              flags: InteractionResponseFlags.IS_COMPONENTS_V2,
+            data: {
+              content: `You guessed **${valueGuess} of ${suitGuess}**. Click confirm to submit.`,
               components: [
                 {
-                  type: MessageComponentTypes.TEXT_DISPLAY,
-                  content: resultStr
+                  type: 1,
+                  components: [
+                    {
+                      type: 2,
+                      style: 1,
+                      label: "Confirm Guess",
+                      custom_id: "confirm_guess"
+                    }
+                  ]
                 }
               ]
-             },
+            }
           });
-          // Update ephemeral message
-          await DiscordRequest(endpoint, {
-            method: 'PATCH',
-            body: {
+        }
+
+
+
+      
+      /*  /balance  */
+      if (name === 'balance') {
+        const userId = body.member.user.id;
+        const balances = readBalances();
+        const user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `💰 Your balance: ${user.balance}` },
+        });
+      }
+
+      /*  /daily  */
+      if (name === 'daily') {
+        const userId = body.member.user.id;
+        const balances = readBalances();
+        const now = Date.now();
+        const DAY = 24 * 60 * 60 * 1000;
+        let user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+        if (now - (user.lastDaily || 0) < DAY) {
+          const remaining = DAY - (now - (user.lastDaily || 0));
+          const hours = Math.floor(remaining / 3600000);
+          const minutes = Math.floor((remaining % 3600000) / 60000);
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: `❌ Daily already claimed. Try again in ${hours}h ${minutes}m.` },
+          });
+        }
+
+        const AMOUNT = 100;
+        user.balance = (user.balance || 0) + AMOUNT;
+        user.lastDaily = now;
+        balances[userId] = user;
+        writeBalances(balances);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `✅ You claimed ${AMOUNT} coins. New balance: ${user.balance}` },
+        });
+      }
+      
+      /*
+         /bj start
+       */
+      if (name === 'bj') {
+        const sub = data.options[0].name;
+        if (sub === 'start') {
+          const userId = body.member.user.id;
+
+           // check for typed bet option; if missing, default to a no-bet game
+          const subOptions = data.options[0].options || [];
+          const betOpt = subOptions.find(o => o.name === 'bet');
+
+          const balances = readBalances();
+          const user = balances[userId] || { balance: 0, lastDaily: 0 };
+
+          const amount = betOpt ? (parseInt(betOpt.value, 10) || 0) : 0;
+          if (amount < 0) {
+            return res.send({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: { content: '❌ Invalid bet amount. Use a positive integer.' },
+            });
+          }
+
+          if (amount > 0) {
+            if ((user.balance || 0) < amount) {
+              return res.send({
+                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                data: { content: `❌ Insufficient funds. Your balance: ${user.balance}` },
+              });
+            }
+
+            // Deduct bet and persist
+            user.balance = (user.balance || 0) - amount;
+            balances[userId] = user;
+            writeBalances(balances);
+          }
+
+          const deck = new Deck();
+          const player = [deck.draw(), deck.draw()];
+          const dealer = [deck.draw(), deck.draw()];
+
+          blackjackGames.set(userId, {
+            deck,
+            player,
+            dealer,
+            bet: amount
+          });
+
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content:
+`🎰 **Blackjack Started!** (Bet: ${amount})\n\nDealer shows: ${dealer[0].value}${suitEmoji(dealer[0].suit)}\nYour hand: ${formatHand(player)} (value ${handValue(player)})\n\nHit or Stand?`,
               components: [
                 {
-                  type: MessageComponentTypes.TEXT_DISPLAY,
-                  content: 'Nice choice ' + getRandomEmoji()
+                  type: 1,
+                  components: [
+                    { type: 2, style: 1, label: "Hit", custom_id: "bj_hit" },
+                    { type: 2, style: 4, label: "Stand", custom_id: "bj_stand" }
+                  ]
                 }
-              ],
-            },
+              ]
+            }
           });
-        } catch (err) {
-          console.error('Error sending message:', err);
         }
       }
     }
-    
-    return;
+      //guess button
+      
+      if (body.type === 3 && body.data.custom_id === "confirm_guess") {
+        const userId = body.member.user.id;
+        const guess = pendingGuesses.get(userId);
+
+        if (!guess) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: "❌ You have no guess pending." }
+          });
+        }
+
+        const { suitGuess, valueGuess } = guess;
+
+        if (!games.has(userId)) {
+          const deck = new Deck();
+          const secretCard = deck.draw();
+          games.set(userId, secretCard);
+        }
+
+        const secretCard = games.get(userId);
+
+        pendingGuesses.delete(userId);
+
+        if (
+          suitGuess === secretCard.suit.toLowerCase() &&
+          valueGuess === secretCard.value.toUpperCase()
+        ) {
+          games.delete(userId);
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: `🎉 Correct! It was **${secretCard.value} of ${secretCard.suit}**.` }
+          });
+        }
+
+        if (suitGuess === secretCard.suit.toLowerCase()) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: "✔ Correct suit, wrong value." }
+          });
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: "❌ Wrong guess!" }
+        });
+      }
+
+
+    /*
+       BUTTON INTERACTIONS (Hit / Stand)
+    */
+
+    if (type === InteractionType.MESSAGE_COMPONENT) {
+      const userId = body.member.user.id;
+      const customId = data.custom_id;
+      const game = blackjackGames.get(userId);
+
+      if (!game) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: "No active Blackjack game! Use `/bj start`." }
+        });
+      }
+
+      /* HIT */
+      if (customId === "bj_hit") {
+        game.player.push(game.deck.draw());
+        const pVal = handValue(game.player);
+
+        if (pVal > 21) {
+          blackjackGames.delete(userId);
+          return res.send({
+            type: 7,
+            data: {
+              content:
+`💥 **Busted!**
+Your hand: ${formatHand(game.player)} (${pVal})
+Dealer wins.`,
+              components: []
+            }
+          });
+        }
+
+        return res.send({
+          type: 7,
+          data: {
+            content:
+`🎰 **Blackjack**
+Dealer shows: ${game.dealer[0].value}${suitEmoji(game.dealer[0].suit)}
+Your hand: ${formatHand(game.player)} (${pVal})
+Hit or Stand?`,
+            components: [
+              {
+                type: 1,
+                components: [
+                  { type: 2, style: 1, label: "Hit", custom_id: "bj_hit" },
+                  { type: 2, style: 4, label: "Stand", custom_id: "bj_stand" }
+                ]
+              }
+            ]
+          }
+        });
+      }
+
+      /* STAND */
+      if (customId === "bj_stand") {
+        let dVal = handValue(game.dealer);
+
+        while (dVal < 17) {
+          game.dealer.push(game.deck.draw());
+          dVal = handValue(game.dealer);
+        }
+
+        const pVal = handValue(game.player);
+
+        let result = "";
+          const bet = game.bet || 0;
+        if (bet) {
+          const balances = readBalances();
+          const userBal = balances[userId] || { balance: 0, lastDaily: 0 };
+
+          if (dVal > 21) {
+            result = `Dealer busts! **You win ${bet}! 🎉**`;
+            userBal.balance = (userBal.balance || 0) + (bet * 2);
+          } else if (pVal > dVal) {
+            result = `**You win ${bet}! 🎉**`;
+            userBal.balance = (userBal.balance || 0) + (bet * 2);
+          } else if (pVal < dVal) {
+            result = `**Dealer wins. You lost ${bet}. 😭**`;
+            // bet was already deducted when game started
+          } else {
+            result = `**Push (tie). Your ${bet} has been returned. 🤝**`;
+            userBal.balance = (userBal.balance || 0) + bet;
+          }
+
+          balances[userId] = userBal;
+          writeBalances(balances);
+        } else {
+        if (dVal > 21) result = "Dealer busts! **You win! 🎉**";
+        else if (pVal > dVal) result = "**You win! 🎉**";
+        else if (pVal < dVal) result = "**Dealer wins. 😭**";
+        else result = "**Push (tie). 🤝**";
+        }
+        blackjackGames.delete(userId);
+
+        return res.send({
+          type: 7,
+          data: {
+            content:
+`🎰 **Final Results**
+
+Dealer: ${formatHand(game.dealer)} (${dVal})
+Player: ${formatHand(game.player)} (${pVal})
+
+${result}`,
+            components: []
+          }
+        });
+      }
+    }
+
+    res.status(400).send('Unknown interaction');
+  } catch (err) {
+    console.error('❌ Error handling interaction:', err);
+    res.status(500).send('Internal Server Error');
   }
-
-  console.error('unknown interaction type', type);
-  return res.status(400).json({ error: 'unknown interaction type' });
 });
 
-app.listen(PORT, () => {
-  console.log('Listening on port', PORT);
-});
+
+
+app.get('/', (_, res) => res.send('Bot is running!'));
+app.listen(PORT, () => console.log(`🚀 Listening on port ${PORT}`));

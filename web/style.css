@@ -1,0 +1,229 @@
+/* Core structure and typography */
+html {
+    font-size: 10px;
+    font-family: 'Inter', sans-serif;
+    
+    /* ***** THEME INTEGRATION: Dark Navy Blue Background ***** */
+    background-color: #1A237E; /* Dark Navy Blue base color */
+    background-image: 
+        repeating-linear-gradient(
+            45deg, 
+            rgba(255, 255, 255, 0.05) 0, /* White pattern overlay for 'blizzard' look */
+            rgba(255, 255, 255, 0.05) 2px, 
+            transparent 2px, 
+            transparent 10px
+        );
+}
+
+body {
+    width: 700px;
+    margin: 30px auto;
+    /* ***** THEME INTEGRATION: Light Sky Blue/White Main Container ***** */
+    background-color: #E0F7FA; /* Light Sky Blue */
+    padding: 30px 40px;
+    border: 5px solid #004D40; /* Dark Teal Border */
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+h1 {
+    font-size: 60px;
+    text-align: center;
+    margin: 0;
+    padding: 20px 0;
+    /* ***** THEME INTEGRATION: Teal Heading Color ***** */
+    color: #004D40; 
+}
+
+h2 {
+    font-size: 30px;
+    border-bottom: 2px solid #004D40;
+    padding-bottom: 10px;
+    margin-top: 30px;
+    color: #004D40;
+}
+
+h3 {
+    font-size: 20px;
+    color: #00838F; /* Brighter Teal */
+    margin-top: 15px;
+}
+
+p, label {
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 10px 0;
+}
+
+/* General button styling */
+button {
+    background-color: #00838F; /* Primary button color */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover:not(:disabled) {
+    background-color: #005A64; /* Darker on hover */
+    transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    background-color: #B0BEC5; /* Grey out disabled buttons */
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Section styling */
+.game-section {
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+/* Controls grouping */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px 0;
+}
+
+.draw-controls, .multi-draw-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.multi-draw-controls input {
+    font-size: 16px;
+    padding: 5px;
+    width: 80px;
+    text-align: center;
+    border: 1px solid #00838F;
+    border-radius: 5px;
+}
+
+#bj-bet-input {
+    font-size: 16px;
+    padding: 5px;
+    width: 80px;
+    text-align: center;
+    border: 1px solid #00838F;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+/* Status area styling */
+#cards-remaining {
+    font-weight: bold;
+    color: #1A237E; /* Navy blue text */
+}
+
+#technical-footer p {
+    text-align: center;
+    font-style: italic;
+    color: #444;
+}
+
+/* --- COMMAND DEMO STYLES --- */
+
+/* Horizontal Separator */
+.separator {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), #00838F, rgba(0, 0, 0, 0));
+    margin: 30px 0;
+}
+
+.separator-light {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), #00BCD4, rgba(0, 0, 0, 0));
+    margin: 20px 0;
+}
+
+/* Style for the command blocks */
+.command-demo-block {
+    margin: 20px 0;
+    padding: 15px;
+    border: 2px solid #00BCD4; /* Cyan/Teal border for bot sections */
+    border-radius: 8px;
+    background-color: #F8FFFF; /* Slightly lighter background */
+}
+
+/* Style for the code/command text */
+.command-demo-block code, .command-grid code {
+    background-color: #CFD8DC; /* Light grey background */
+    color: #004D40; /* Dark Teal text */
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Command List Grid */
+.command-grid {
+    display: flex;
+    gap: 20px;
+}
+.command-grid ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.command-grid li {
+    margin-bottom: 5px;
+}
+
+/* Ensure the bot output area is clearly visible */
+#bot-output-area {
+    margin: 15px 0;
+    padding: 10px;
+    border: 1px dashed #757575;
+    background-color: #ECEFF1; /* Very light grey */
+}
+
+/* Styling for the hands and message (Bot Output Look) */
+.hand-display {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 1px dashed #B2EBF2;
+    font-family: 'Courier New', Courier, monospace; /* Monospace for bot output feel */
+}
+
+.bj-message {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 15px 0;
+    color: #D32F2F; /* Red for results/status */
+    font-family: 'Inter', sans-serif;
+}
+
+/* Container for Blackjack control buttons */
+.bj-controls {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+/* Apply existing button styles to BJ controls */
+.bj-controls button {
+    font-size: 18px;
+    padding: 12px 25px;
+}
