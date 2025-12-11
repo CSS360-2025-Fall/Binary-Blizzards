@@ -10,8 +10,12 @@ import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
 import fs from 'fs';
 import path from 'path';
+import { rerun } from './deploy-commands.js';
+import { TarotCard } from './tarot-card.js';
 
 const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
+// global for emoji mode; default is off.
+export let TOGGLE_MODE = 'off';
 
 function readBalances() {
   try {
@@ -128,8 +132,8 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       }
 
       /*  /rules  */
-      if (name === 'rules') {
-        const rulesText =
+      if (name === 'guessrules') {
+        const guessRulesText =
 `
 Rules for the guessing game:
 
@@ -138,9 +142,16 @@ A fast, simple card-guessing game.
 I secretly draw one card from a fresh deck.
 You guess the *suit* and *value*
 I'll tell you if you got the suit right, the value right, or both wrong.
-Keep guessing until you find the hidden card!
+Keep guessing until you find the hidden card!`;
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: guessRulesText },
+        });
+      }
 
-Rules for BlackJack game:
+        if (name === 'bjrules') {
+          const bjRulesText =
+`Rules for BlackJack game:
 
 Objective:
 
@@ -179,7 +190,7 @@ Equal totals → Tie (Push)`;
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: rulesText },
+          data: { content: bjRulesText },
         });
       }
 
@@ -187,9 +198,12 @@ Equal totals → Tie (Push)`;
         if (name === 'guess') {
           const userId = body.member.user.id;
 
+          const convertRank =data.options.find(o => o.name === 'rank').value.toUpperCase();
+
           // get actual values from options
           const suitGuess = data.options.find(o => o.name === 'suit').value.toLowerCase();
-          const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+          // const valueGuess = data.options.find(o => o.name === 'value').value.toUpperCase();
+          const valueGuess = convertRank;
 
           // store actual values in pendingGuesses
           pendingGuesses.set(userId, { suitGuess, valueGuess });
@@ -216,7 +230,50 @@ Equal totals → Tie (Push)`;
           });
         }
 
+        if(name === 'dadjoke') {
+          // Fetch a random dad joke from an external API
+          const response = await fetch('https://icanhazdadjoke.com/', {
+            headers: { Accept: 'application/json' },
+          });
+          const data = await response.json();
+          const joke = data.joke || "Couldn't fetch a dad joke at the moment.";
 
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: joke },
+          });
+        }
+
+      if (name === 'tarot') {
+      // FIX: Longer term, respect OOP principles.
+      const readingType = req.body.data.options[0].value;
+      console.log('Reading type selected:', readingType);
+      let tarotDeck = new TarotCard(readingType);
+      const cards = tarotDeck.shuffleDeck();
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `For entertainment purposes only. Please contact [988](<https://988lifeline.org/>) if you are in crisis.
+            \n\nPast (${cards[0].cardName}, ${cards[0].direction}): ${cards[0].reading}
+            \nPresent (${cards[1].cardName}, ${cards[2].direction}): ${cards[1].reading}
+            \nFuture (${cards[2].cardName}, ${cards[2].direction}): ${cards[2].reading}` },
+        });
+      }
+
+      if (name === 'emoji') {
+        let previousMode = TOGGLE_MODE;
+        const mode = data.options[0].value;
+        TOGGLE_MODE = mode;
+        console.log(TOGGLE_MODE);
+
+        if(previousMode !== TOGGLE_MODE) {
+          rerun();
+        }
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `Mode guessing game mode to **${mode}**.` },
+        });
+      }
 
       
       /*  /balance  */
@@ -378,7 +435,11 @@ Equal totals → Tie (Push)`;
       }
 
 
+
     /*
+=======
+    /* 
+>>>>>>> 96dd0c7203eedc05383a388ce99f4ba2fd7fd1fb
        BUTTON INTERACTIONS (Hit / Stand)
     */
 
