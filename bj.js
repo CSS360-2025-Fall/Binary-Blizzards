@@ -7,6 +7,7 @@ import {
 } from 'discord.js';
 
 import { Deck } from '../card.js';   // USE YOUR REAL DECK
+import { incrementWin, incrementLoss } from './balances-manager.js';
 
 // Helper functions
 function handValue(hand) {
@@ -98,6 +99,8 @@ Hit or Stand?`
       const pVal = handValue(game.player);
 
       if (pVal > 21) {
+        // record loss
+        incrementLoss(userId, 'blackjack');
         blackjackSessions.delete(userId);
 
         return interaction.update({
@@ -146,12 +149,15 @@ Hit or Stand?`
       const pVal = handValue(game.player);
       let result;
 
-      if (dVal > 21) result = "Dealer busts! **You win! 🎉**";
-      else if (pVal > dVal) result = "**You win! 🎉**";
-      else if (pVal < dVal) result = "**Dealer wins! 😭**";
-      else result = "**Push (tie). 🤝**";
+      let outcome;
+      if (dVal > 21) { result = "Dealer busts! **You win! 🎉**"; outcome = 'win'; }
+      else if (pVal > dVal) { result = "**You win! 🎉**"; outcome = 'win'; }
+      else if (pVal < dVal) { result = "**Dealer wins! 😭**"; outcome = 'loss'; }
+      else { result = "**Push (tie). 🤝**"; outcome = 'push'; }
 
       blackjackSessions.delete(userId);
+      if (outcome === 'win') incrementWin(userId, 'blackjack');
+      else if (outcome === 'loss') incrementLoss(userId, 'blackjack');
 
       return interaction.update({
         embeds: [

@@ -1,6 +1,10 @@
 {
   "343723706230767618": {
-    "balance": 105,
-    "lastDaily": 1763629228804
+    "balance": 106800002,
+    "lastDaily": 1765488525632,
+    "blackjackWins": 1,
+    "blackjackLosses": 0,
+    "guessingWins": 0,
+    "guessingLosses": 0
   }
 }
