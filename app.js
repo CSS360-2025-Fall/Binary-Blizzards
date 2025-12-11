@@ -10,29 +10,14 @@ import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
 import fs from 'fs';
 import path from 'path';
+import { readBalances, writeBalances, getUser, ensureUser, incrementWin, incrementLoss, getTopBalances } from './balances-manager.js';
 import { rerun } from './deploy-commands.js';
 import { TarotCard } from './tarot-card.js';
 
-const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
 // global for emoji mode; default is off.
 export let TOGGLE_MODE = 'off';
 
-function readBalances() {
-  try {
-    const raw = fs.readFileSync(BALANCE_FILE, 'utf8');
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) {
-    return {};
-  }
-}
-
-function writeBalances(data) {
-  try {
-    fs.writeFileSync(BALANCE_FILE, JSON.stringify(data, null, 2));
-  } catch (e) {
-    console.error('Failed to write balances:', e);
-  }
-}
+// readBalances and writeBalances are provided by balances-manager
 
 const app = express();
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
@@ -269,15 +254,41 @@ Equal totals → Tie (Push)`;
       }
 
       
-      /*  /balance  */
-      if (name === 'balance') {
+      /*  /stats  */
+      if (name === 'stats' || name === 'balance') {
         const userId = body.member.user.id;
         const balances = readBalances();
-        const user = balances[userId] || { balance: 0, lastDaily: 0 };
+        const user = getUser(balances, userId);
+
+        const bwins = user.blackjackWins || 0;
+        const blosses = user.blackjackLosses || 0;
+        const bTotal = bwins + blosses;
+        const bRate = bTotal ? ((bwins / bTotal) * 100).toFixed(1) + '%' : 'N/A';
+
+        const gwins = user.guessingWins || 0;
+        const glosses = user.guessingLosses || 0;
+        const gTotal = gwins + glosses;
+        const gRate = gTotal ? ((gwins / gTotal) * 100).toFixed(1) + '%' : 'N/A';
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `💰 Your balance: ${user.balance}` },
+          data: { content: `💰 Your balance: ${Number(user.balance).toLocaleString()}\n🃏 Blackjack: ${bwins} wins / ${blosses} losses (Winrate: ${bRate})\n🎴 Guessing game: ${gwins} wins / ${glosses} losses (Winrate: ${gRate})` },
+        });
+      }
+      /*  /leaderboard  */
+      if (name === 'leaderboard') {
+        const top = getTopBalances(5);
+        if (!top.length) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: 'No users in leaderboard yet.' },
+          });
+        }
+
+        const msg = top.map((u, idx) => `${idx + 1}. <@${u.userId}> — ${Number(u.balance).toLocaleString()}`).join('\n');
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `🏆 Top ${top.length} Balances\n\n${msg}` },
         });
       }
 
@@ -324,7 +335,8 @@ Equal totals → Tie (Push)`;
           const betOpt = subOptions.find(o => o.name === 'bet');
 
           const balances = readBalances();
-          const user = balances[userId] || { balance: 0, lastDaily: 0 };
+          ensureUser(balances, userId);
+          const user = balances[userId];
 
           const amount = betOpt ? (parseInt(betOpt.value, 10) || 0) : 0;
           if (amount < 0) {
@@ -343,8 +355,7 @@ Equal totals → Tie (Push)`;
             }
 
             // Deduct bet and persist
-            user.balance = (user.balance || 0) - amount;
-            balances[userId] = user;
+            balances[userId].balance = (balances[userId].balance || 0) - amount;
             writeBalances(balances);
           }
 
@@ -407,6 +418,8 @@ Equal totals → Tie (Push)`;
           suitGuess === secretCard.suit.toLowerCase() &&
           valueGuess === secretCard.value.toUpperCase()
         ) {
+          // correct guess -> increment guessing wins
+          incrementWin(userId, 'guessing');
           games.delete(userId);
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -415,12 +428,15 @@ Equal totals → Tie (Push)`;
         }
 
         if (suitGuess === secretCard.suit.toLowerCase()) {
+          // Partial match counts as a loss
+          incrementLoss(userId, 'guessing');
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: { content: "✔ Correct suit, wrong value." }
           });
         }
-
+        // wrong guess -> record loss
+        incrementLoss(userId, 'guessing');
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: { content: "❌ Wrong guess!" }
@@ -449,6 +465,8 @@ Equal totals → Tie (Push)`;
         const pVal = handValue(game.player);
 
         if (pVal > 21) {
+          // player busted -> record blackjack loss
+          incrementLoss(userId, 'blackjack');
           blackjackGames.delete(userId);
           return res.send({
             type: 7,
@@ -495,6 +513,7 @@ Hit or Stand?`,
         const pVal = handValue(game.player);
 
         let result = "";
+        let outcome = null; // 'win' | 'loss' | 'push'
           const bet = game.bet || 0;
         if (bet) {
           const balances = readBalances();
@@ -503,26 +522,34 @@ Hit or Stand?`,
           if (dVal > 21) {
             result = `Dealer busts! **You win ${bet}! 🎉**`;
             userBal.balance = (userBal.balance || 0) + (bet * 2);
+            outcome = 'win';
           } else if (pVal > dVal) {
             result = `**You win ${bet}! 🎉**`;
             userBal.balance = (userBal.balance || 0) + (bet * 2);
+            outcome = 'win';
           } else if (pVal < dVal) {
             result = `**Dealer wins. You lost ${bet}. 😭**`;
             // bet was already deducted when game started
+            outcome = 'loss';
           } else {
             result = `**Push (tie). Your ${bet} has been returned. 🤝**`;
             userBal.balance = (userBal.balance || 0) + bet;
+            outcome = 'push';
           }
 
           balances[userId] = userBal;
           writeBalances(balances);
         } else {
-        if (dVal > 21) result = "Dealer busts! **You win! 🎉**";
-        else if (pVal > dVal) result = "**You win! 🎉**";
-        else if (pVal < dVal) result = "**Dealer wins. 😭**";
-        else result = "**Push (tie). 🤝**";
+        if (dVal > 21) { result = "Dealer busts! **You win! 🎉**"; outcome = 'win'; }
+        else if (pVal > dVal) { result = "**You win! 🎉**"; outcome = 'win'; }
+        else if (pVal < dVal) { result = "**Dealer wins. 😭**"; outcome = 'loss'; }
+        else { result = "**Push (tie). 🤝**"; outcome = 'push'; }
         }
         blackjackGames.delete(userId);
+
+        // Update stats depending on the outcome
+        if (outcome === 'win') incrementWin(userId, 'blackjack');
+        else if (outcome === 'loss') incrementLoss(userId, 'blackjack');
 
         return res.send({
           type: 7,
