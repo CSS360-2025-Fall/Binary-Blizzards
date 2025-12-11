@@ -73,3 +73,18 @@ export function incrementLoss(userId, game) {
   if (game === 'guessing') return incrementStat(userId, 'guessingLosses', 1);
   return null;
 }
+
+export function getTopBalances(limit = 5) {
+  const balances = readBalances();
+  const items = Object.keys(balances).map(id => ({
+    userId: id,
+    balance: balances[id].balance || 0,
+    blackjackWins: balances[id].blackjackWins || 0,
+    blackjackLosses: balances[id].blackjackLosses || 0,
+    guessingWins: balances[id].guessingWins || 0,
+    guessingLosses: balances[id].guessingLosses || 0,
+  }));
+
+  items.sort((a, b) => b.balance - a.balance);
+  return items.slice(0, limit);
+}

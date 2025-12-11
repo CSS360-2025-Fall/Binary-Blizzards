@@ -5,6 +5,6 @@
     "blackjackWins": 1,
     "blackjackLosses": 0,
     "guessingWins": 0,
-    "guessingLosses": 0
+    "guessingLosses": 1
   }
 }

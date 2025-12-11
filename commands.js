@@ -141,6 +141,14 @@ const DAILY_COMMAND = {
   contexts: [0, 2],
 };
 
+const LEADERBOARD_COMMAND = {
+  name: 'leaderboard',
+  description: 'Show the top 5 highest balances',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
 const BJ_COMMAND = {
   name: 'bj',
   description: 'Play a simple Blackjack game',
@@ -223,6 +231,6 @@ const TAROT_COMMAND = {
 
 
 
-export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, STATS_COMMAND, DAILY_COMMAND, EMOJI_COMMAND, DADJOKE_COMMAND, TAROT_COMMAND];
+export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, STATS_COMMAND, DAILY_COMMAND, LEADERBOARD_COMMAND, EMOJI_COMMAND, DADJOKE_COMMAND, TAROT_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

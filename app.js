@@ -10,7 +10,7 @@ import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
 import fs from 'fs';
 import path from 'path';
-import { readBalances, writeBalances, getUser, ensureUser, incrementWin, incrementLoss } from './balances-manager.js';
+import { readBalances, writeBalances, getUser, ensureUser, incrementWin, incrementLoss, getTopBalances } from './balances-manager.js';
 import { rerun } from './deploy-commands.js';
 import { TarotCard } from './tarot-card.js';
 
@@ -272,7 +272,23 @@ Equal totals → Tie (Push)`;
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: `💰 Your balance: ${user.balance}\n\n🃏 Blackjack: ${bwins} wins / ${blosses} losses (Winrate: ${bRate})\n🎴 Guessing game: ${gwins} wins / ${glosses} losses (Winrate: ${gRate})` },
+          data: { content: `💰 Your balance: ${Number(user.balance).toLocaleString()}\n🃏 Blackjack: ${bwins} wins / ${blosses} losses (Winrate: ${bRate})\n🎴 Guessing game: ${gwins} wins / ${glosses} losses (Winrate: ${gRate})` },
+        });
+      }
+      /*  /leaderboard  */
+      if (name === 'leaderboard') {
+        const top = getTopBalances(5);
+        if (!top.length) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: 'No users in leaderboard yet.' },
+          });
+        }
+
+        const msg = top.map((u, idx) => `${idx + 1}. <@${u.userId}> — ${Number(u.balance).toLocaleString()}`).join('\n');
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: `🏆 Top ${top.length} Balances\n\n${msg}` },
         });
       }
 
