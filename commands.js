@@ -141,9 +141,9 @@ const WORDLE_RULES_COMMAND = {
 };
 
 
-const BALANCE_COMMAND = {
-  name: 'balance',
-  description: 'Show your current balance',
+const STATS_COMMAND = {
+  name: 'stats',
+  description: 'Show your balance and game winrates',
   type: 1,
   integration_types: [0, 1],
   contexts: [0, 2],
@@ -152,6 +152,14 @@ const BALANCE_COMMAND = {
 const DAILY_COMMAND = {
   name: 'daily',
   description: 'Claim your daily free money (24h cooldown)',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+const LEADERBOARD_COMMAND = {
+  name: 'leaderboard',
+  description: 'Show the top 5 highest balances',
   type: 1,
   integration_types: [0, 1],
   contexts: [0, 2],
@@ -239,5 +247,6 @@ const TAROT_COMMAND = {
 
 
 
-export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, GUESS_RULES_COMMAND,BJ_RULES_COMMAND, WORDLE_RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, EMOJI_COMMAND, DADJOKE_COMMAND, TAROT_COMMAND];
+export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND,GUESS_RULES_COMMAND,BJ_RULES_COMMAND, WORDLE_RULES_COMMAND , BJ_COMMAND, STATS_COMMAND, DAILY_COMMAND, LEADERBOARD_COMMAND, EMOJI_COMMAND, DADJOKE_COMMAND, TAROT_COMMAND];
+
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
