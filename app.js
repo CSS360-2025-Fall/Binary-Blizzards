@@ -117,8 +117,8 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       }
 
       /*  /rules  */
-      if (name === 'rules') {
-        const rulesText = 
+      if (name === 'guessrules') {
+        const guessRulesText =
 `
 Rules for the guessing game:
 
@@ -127,9 +127,16 @@ A fast, simple card-guessing game.
 I secretly draw one card from a fresh deck.
 You guess the *suit* and *value*
 I'll tell you if you got the suit right, the value right, or both wrong.
-Keep guessing until you find the hidden card!
+Keep guessing until you find the hidden card!`;
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: guessRulesText },
+        });
+      }
 
-Rules for BlackJack game:
+        if (name === 'bjrules') {
+          const bjRulesText =
+`Rules for BlackJack game:
 
 Objective:
 
@@ -168,9 +175,20 @@ Equal totals → Tie (Push)`;
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: { content: rulesText },
+          data: { content: bjRulesText },
         });
       }
+
+      if (name === 'wordlerules') {
+          const wordleRulesText =
+  `
+  Rules for Wordle:
+              Try to guess a 5 letter word in less than 6 guesses.  The wordle board will show you a 🟩 symbol if a letter in that word is in the correct space. If the letter is in the word but in the incorrect space the wordle board will display 🟨. If neither of these symbols are shown then none of the letters in the word you guessed are in the hidden word`  ;
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: wordleRulesText },
+          });
+        }
 
       /*  /guess  */
         if (name === 'guess') {
@@ -322,8 +340,8 @@ Equal totals → Tie (Push)`;
         });
       }
       
-      /* 
-         /bj start 
+      /*
+         /bj start
        */
       if (name === 'bj') {
         const sub = data.options[0].name;
@@ -443,7 +461,12 @@ Equal totals → Tie (Push)`;
         });
       }
 
+
+
+    /*
+=======
     /* 
+>>>>>>> 96dd0c7203eedc05383a388ce99f4ba2fd7fd1fb
        BUTTON INTERACTIONS (Hit / Stand)
     */
 
