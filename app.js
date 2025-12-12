@@ -194,6 +194,17 @@ Equal totals → Tie (Push)`;
         });
       }
 
+      if (name === 'wordlerules') {
+          const wordleRulesText =
+  `
+  Rules for Wordle:
+              Try to guess a 5 letter word in less than 6 guesses.  The wordle board will show you a 🟩 symbol if a letter in that word is in the correct space. If the letter is in the word but in the incorrect space the wordle board will display 🟨. If neither of these symbols are shown then none of the letters in the word you guessed are in the hidden word`  ;
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: wordleRulesText },
+          });
+        }
+
       /*  /guess  */
         if (name === 'guess') {
           const userId = body.member.user.id;
