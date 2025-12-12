@@ -116,9 +116,25 @@ const GUESS_COMMAND = {
 };
 
 
-const RULES_COMMAND = {
-  name: 'rules',
+const GUESS_RULES_COMMAND = {
+  name: 'guessrules',
+  description: 'Show the rules for the guessing game',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+const BJ_RULES_COMMAND = {
+  name: 'bjrules',
   description: 'Show the rules for the Black Jack Card game',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+const WORDLE_RULES_COMMAND = {
+  name: 'wordlerules',
+  description: 'Show the rules for the Worlde game',
   type: 1,
   integration_types: [0, 1],
   contexts: [0, 2],
@@ -223,6 +239,5 @@ const TAROT_COMMAND = {
 
 
 
-export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, EMOJI_COMMAND, DADJOKE_COMMAND, TAROT_COMMAND];
-
+export const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, GUESS_RULES_COMMAND,BJ_RULES_COMMAND, WORDLE_RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND, EMOJI_COMMAND, DADJOKE_COMMAND, TAROT_COMMAND];
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
