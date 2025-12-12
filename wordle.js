@@ -1,81 +1,70 @@
-// wordle.js
 const WORDS = [
-    "apple","table","chair","water","mouse","candy","peace",
-    "light","sound","train","plant","world","smart","heart"
+  "apple","table","chair","water","mouse","candy",
+  "peace","light","sound","train","plant","world",
+  "smart","heart"
 ];
 
 function randomWord() {
-    return WORDS[Math.floor(Math.random() * WORDS.length)].toLowerCase();
+  return WORDS[Math.floor(Math.random() * WORDS.length)];
 }
 
-const games = {};  
-// structure per user: 
-// games[userId] = { answer: "apple", attempts: 0, finished: false };
+const games = {};
 
 function evaluateGuess(guess, answer) {
-    let result = "";
-    let answerArr = answer.split("");
+  const result = Array(5).fill("⬛");
+  const answerArr = answer.split("");
 
-    for (let i = 0; i < 5; i++) {
-        if (guess[i] === answer[i]) {
-            result += "🟩";        // correct letter + correct position
-            answerArr[i] = null;   // mark used
-        } else {
-            result += "_";         // fill temporary
-        }
+  for (let i = 0; i < 5; i++) {
+    if (guess[i] === answer[i]) {
+      result[i] = "🟩";
+      answerArr[i] = null;
     }
+  }
 
-    let finalResult = "";
-
-    for (let i = 0; i < 5; i++) {
-        if (result[i] === "🟩") {
-            finalResult += "🟩";
-        } else if (answerArr.includes(guess[i])) {
-            finalResult += "🟨";   // correct letter wrong position
-            answerArr[answerArr.indexOf(guess[i])] = null;
-        } else {
-            finalResult += "⬛";   // not in word
-        }
+  for (let i = 0; i < 5; i++) {
+    if (result[i] === "🟩") continue;
+    const idx = answerArr.indexOf(guess[i]);
+    if (idx !== -1) {
+      result[i] = "🟨";
+      answerArr[idx] = null;
     }
+  }
 
-    return finalResult;
+  return result.join("");
 }
 
-module.exports = {
-    startGame(userId) {
-        games[userId] = {
-            answer: randomWord(),
-            attempts: 0,
-            finished: false
-        };
-        return "Wordle game started! Guess a 5-letter word using **!guess <word>**.";
-    },
+export function startGame(userId) {
+  games[userId] = {
+    answer: randomWord(),
+    attempts: 0,
+    finished: false
+  };
+  return "Wordle started. Use `/wordle guess` with a 5-letter word.";
+}
 
-    guessWord(userId, guess) {
-        guess = guess.toLowerCase();
+export function guessWord(userId, guess) {
+  const game = games[userId];
+  if (!game) return "No active Wordle game. Use `/wordle start`.";
+  if (game.finished) return "Game already finished. Start a new one.";
 
-        const game = games[userId];
-        if (!game) return "You have no active game! Use **!wordle** to start.";
-        if (game.finished) return "Game already ended! Start a new one with **!wordle**.";
+  if (!guess || guess.length !== 5) return "Your guess must be exactly 5 letters.";
 
-        if (guess.length !== 5) return "❌ Your guess must be **5 letters**.";
+  guess = guess.toLowerCase();
+  game.attempts++;
 
-        game.attempts++;
+  const feedback = evaluateGuess(guess, game.answer);
 
-        const feedback = evaluateGuess(guess, game.answer);
+  if (guess === game.answer) {
+    game.finished = true;
+    return `🎉 Correct! The word was **${game.answer}**\n${feedback}`;
+  }
 
-        if (guess === game.answer) {
-            game.finished = true;
-            return `🎉 Correct! The word was **${game.answer}**.\n${feedback}`;
-        }
+  if (game.attempts >= 6) {
+    game.finished = true;
+    return `❌ Out of attempts. The word was **${game.answer}**`;
+  }
 
-        if (game.attempts >= 6) {
-            let ans = game.answer;
-            game.finished = true;
-            return `❌ Out of attempts! The word was **${ans}**.\n${feedback}`;
-        }
+  return `Attempt ${game.attempts}/6\n${feedback}`;
+}
 
-        return `Guess **${game.attempts}/6**:\n${feedback}`;
-    }
-};
 
