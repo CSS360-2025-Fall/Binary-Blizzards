@@ -1,9 +1,7 @@
 import 'dotenv/config';
 import { getRPSChoices } from './game.js';
 import { capitalize, InstallGlobalCommands } from './utils.js';
-import { Deck } from './card.js';
 
-// Get the game choices from game.js
 function createCommandChoices() {
   const choices = getRPSChoices();
   const commandChoices = [];
@@ -18,7 +16,6 @@ function createCommandChoices() {
   return commandChoices;
 }
 
-// Simple test command
 const TEST_COMMAND = {
   name: 'test',
   description: 'Basic command',
@@ -26,7 +23,6 @@ const TEST_COMMAND = {
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
-
 
 const CHALLENGE_COMMAND = {
   name: 'challenge',
@@ -44,7 +40,6 @@ const CHALLENGE_COMMAND = {
   integration_types: [0, 1],
   contexts: [0, 2],
 };
-
 
 const GUESS_COMMAND = {
   name: 'guess',
@@ -68,7 +63,6 @@ const GUESS_COMMAND = {
   contexts: [0, 2],
 };
 
-
 const RULES_COMMAND = {
   name: 'rules',
   description: 'Show the rules for the Black Jack Card game',
@@ -76,7 +70,6 @@ const RULES_COMMAND = {
   integration_types: [0, 1],
   contexts: [0, 2],
 };
-
 
 const BALANCE_COMMAND = {
   name: 'balance',
@@ -104,20 +97,56 @@ const BJ_COMMAND = {
       description: 'Start a Blackjack game',
       options: [
         {
-          type: 4, // integer
+          type: 4,
           name: 'bet',
           description: 'Amount to bet',
           required: false,
-        }
-      ]
-    }
+        },
+      ],
+    },
   ],
   type: 1,
   integration_types: [0, 1],
   contexts: [0, 2],
 };
 
+const WORDLE_COMMAND = {
+  name: 'wordle',
+  description: 'Play a 6-round Wordle game',
+  options: [
+    {
+      type: 1,
+      name: 'start',
+      description: 'Start a new Wordle game',
+    },
+    {
+      type: 1,
+      name: 'guess',
+      description: 'Guess a 5-letter word',
+      options: [
+        {
+          type: 3,
+          name: 'word',
+          description: 'Your 5-letter guess',
+          required: true,
+        },
+      ],
+    },
+  ],
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, GUESS_COMMAND, RULES_COMMAND, BJ_COMMAND, BALANCE_COMMAND, DAILY_COMMAND];
+const ALL_COMMANDS = [
+  TEST_COMMAND,
+  CHALLENGE_COMMAND,
+  GUESS_COMMAND,
+  RULES_COMMAND,
+  BJ_COMMAND,
+  WORDLE_COMMAND,
+  BALANCE_COMMAND,
+  DAILY_COMMAND,
+];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
