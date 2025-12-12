@@ -10,6 +10,10 @@ import { getShuffledOptions } from './game.js';
 import { Deck } from './card.js';
 import fs from 'fs';
 import path from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const wordle = require('./wordle.js');
 
 const BALANCE_FILE = path.join(process.cwd(), 'balances.json');
 
@@ -41,8 +45,8 @@ app.use(
 
 const PORT = process.env.PORT || 3000;
 
-const games = new Map();          // for /guess secret cards
-const blackjackGames = new Map(); // for /bj blackjack sessions
+const games = new Map();
+const blackjackGames = new Map();
 
 function handValue(hand) {
   let value = 0;
@@ -55,7 +59,7 @@ function handValue(hand) {
       value += 11;
       aces++;
     } else {
-      value += parseInt(card.value);
+      value += parseInt(card.value, 10);
     }
   }
 
@@ -84,15 +88,9 @@ function formatHand(hand) {
     clubs: '♣ (clubs)',
     spades: '♠ (spades)',
   };
-  return hand
-    .map((c) => `${c.value}${suitMap[c.suit]}`)
-    .join(', ');
+  return hand.map((c) => `${c.value}${suitMap[c.suit]}`).join(', ');
 }
 
-/**
- * Settle a blackjack game: update balance and return result text.
- * game.bet is the total bet (after double down if any).
- */
 function settleBlackjack(userId, game, pVal, dVal) {
   let result = '';
   const bet = game.bet || 0;
@@ -102,22 +100,16 @@ function settleBlackjack(userId, game, pVal, dVal) {
     const userBal = balances[userId] || { balance: 0, lastDaily: 0 };
 
     if (pVal > 21 && dVal <= 21) {
-      // Player busts
       result = `💥 **You busted and lost ${bet}. 😭**`;
-      // bet already removed when game started / doubled
     } else if (dVal > 21 && pVal <= 21) {
-      // Dealer busts
       result = `Dealer busts! **You win ${bet}! 🎉**`;
       userBal.balance = (userBal.balance || 0) + bet * 2;
     } else if (pVal > dVal && pVal <= 21) {
-      // Player higher
       result = `**You win ${bet}! 🎉**`;
       userBal.balance = (userBal.balance || 0) + bet * 2;
     } else if (pVal < dVal && dVal <= 21) {
-      // Dealer higher
       result = `**Dealer wins. You lost ${bet}. 😭**`;
     } else {
-      // Push
       result = `**Push (tie). Your ${bet} has been returned. 🤝**`;
       userBal.balance = (userBal.balance || 0) + bet;
     }
@@ -125,7 +117,6 @@ function settleBlackjack(userId, game, pVal, dVal) {
     balances[userId] = userBal;
     writeBalances(balances);
   } else {
-    // No-bet mode: just descriptive text
     if (pVal > 21 && dVal <= 21) {
       result = '💥 **You busted. Dealer wins. 😭**';
     } else if (dVal > 21 && pVal <= 21) {
@@ -147,9 +138,13 @@ app.post(
   verifyKeyMiddleware(process.env.PUBLIC_KEY),
   async (req, res) => {
     try {
-      console.log('📥 Incoming Interaction');
       const body = req.body;
       const { type, data } = body;
+
+      const userId =
+        body.member?.user?.id ||
+        body.user?.id ||
+        body.member?.id;
 
       if (type === InteractionType.PING) {
         return res.send({ type: InteractionResponseType.PONG });
@@ -158,7 +153,6 @@ app.post(
       if (type === InteractionType.APPLICATION_COMMAND) {
         const { name } = data;
 
-        /*  /test  */
         if (name === 'test') {
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -166,7 +160,6 @@ app.post(
           });
         }
 
-        /*  /challenge */
         if (name === 'challenge') {
           const options = getShuffledOptions();
           return res.send({
@@ -183,7 +176,6 @@ app.post(
           });
         }
 
-        /*  /rules  */
         if (name === 'rules') {
           const rulesText = `
 Rules for the guessing game:
@@ -191,22 +183,21 @@ Rules for the guessing game:
 🎴Guess the Card
 A fast, simple card-guessing game.
 I secretly draw one card from a fresh deck.
-You guess the *suit* and *value*
+You guess the suit and value.
 I'll tell you if you got the suit right, the value right, or both wrong.
 Keep guessing until you find the hidden card!
 
 Rules for BlackJack game:
 
 Objective:
-
 Get a hand value closer to 21 than the dealer without going over.
+
 🂡 Card Values
 Number cards (2–10): face value
 J, Q, K: 10
 Ace (A): 11, but becomes 1 if 11 would cause the hand to bust
 
 🃏 Player Rules
-
 You start with two cards.
 After seeing your cards, you may choose:
 Hit → take another card
@@ -215,32 +206,58 @@ You may continue hitting as long as your total does not exceed 21.
 If your total goes over 21, you bust and immediately lose.
 
 🏦 Dealer Rules
-
 The dealer also starts with two cards, but only one is shown.
 The dealer must draw cards until the hand total is 17 or higher.
-The dealer cannot choose to stop early
+The dealer cannot choose to stop early.
 If the dealer exceeds 21, the dealer busts and you automatically win.
 
 🏁 Winning the Game
-
 After both you and the dealer have finished:
 If you bust → Dealer wins
 If the dealer busts → You win
-
 Otherwise:
-
 Higher total wins
-Equal totals → Tie (Push)`;
-
+Equal totals → Tie (Push)
+`;
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: { content: rulesText },
           });
         }
 
-        /*  /guess  */
+        if (name === 'wordle') {
+          const sub = data.options?.[0]?.name;
+
+          if (sub === 'start') {
+            wordle.startGame(userId);
+            return res.send({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: {
+                content:
+                  'Wordle started. Use `/wordle guess` with a 5-letter word. You have 6 attempts.',
+              },
+            });
+          }
+
+          if (sub === 'guess') {
+            const subOptions = data.options?.[0]?.options || [];
+            const wordOpt = subOptions.find((o) => o.name === 'word');
+            const guess = (wordOpt?.value || '').toString();
+            const msg = wordle.guessWord(userId, guess);
+
+            return res.send({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: { content: msg },
+            });
+          }
+
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: 'Use `/wordle start` or `/wordle guess word:<xxxxx>`.' },
+          });
+        }
+
         if (name === 'guess') {
-          const userId = body.member.user.id;
           const suitGuess = data.options
             .find((o) => o.name === 'suit')
             .value.toLowerCase();
@@ -249,26 +266,9 @@ Equal totals → Tie (Push)`;
             .value.toUpperCase();
 
           const validSuits = ['hearts', 'diamonds', 'clubs', 'spades'];
-          const validValues = [
-            'A',
-            '2',
-            '3',
-            '4',
-            '5',
-            '6',
-            '7',
-            '8',
-            '9',
-            '10',
-            'J',
-            'Q',
-            'K',
-          ];
+          const validValues = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
-          if (
-            !validSuits.includes(suitGuess) ||
-            !validValues.includes(valueGuess)
-          ) {
+          if (!validSuits.includes(suitGuess) || !validValues.includes(valueGuess)) {
             return res.send({
               type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
               data: { content: '❌ Invalid card input! Try again.' },
@@ -309,9 +309,7 @@ Equal totals → Tie (Push)`;
           });
         }
 
-        /*  /balance  */
         if (name === 'balance') {
-          const userId = body.member.user.id;
           const balances = readBalances();
           const user = balances[userId] || { balance: 0, lastDaily: 0 };
 
@@ -321,9 +319,7 @@ Equal totals → Tie (Push)`;
           });
         }
 
-        /*  /daily  */
         if (name === 'daily') {
-          const userId = body.member.user.id;
           const balances = readBalances();
           const now = Date.now();
           const DAY = 24 * 60 * 60 * 1000;
@@ -335,9 +331,7 @@ Equal totals → Tie (Push)`;
             const minutes = Math.floor((remaining % 3600000) / 60000);
             return res.send({
               type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: `❌ Daily already claimed. Try again in ${hours}h ${minutes}m.`,
-              },
+              data: { content: `❌ Daily already claimed. Try again in ${hours}h ${minutes}m.` },
             });
           }
 
@@ -349,22 +343,14 @@ Equal totals → Tie (Push)`;
 
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: `✅ You claimed ${AMOUNT} coins. New balance: ${user.balance}`,
-            },
+            data: { content: `✅ You claimed ${AMOUNT} coins. New balance: ${user.balance}` },
           });
         }
 
-        /* 
-           /bj start 
-        */
         if (name === 'bj') {
-          const sub = data.options[0].name;
+          const sub = data.options?.[0]?.name;
           if (sub === 'start') {
-            const userId = body.member.user.id;
-
-            // check for typed bet option; if missing, default to a no-bet game
-            const subOptions = data.options[0].options || [];
+            const subOptions = data.options?.[0]?.options || [];
             const betOpt = subOptions.find((o) => o.name === 'bet');
 
             const balances = readBalances();
@@ -374,9 +360,7 @@ Equal totals → Tie (Push)`;
             if (amount < 0) {
               return res.send({
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: '❌ Invalid bet amount. Use a positive integer.',
-                },
+                data: { content: '❌ Invalid bet amount. Use a positive integer.' },
               });
             }
 
@@ -384,13 +368,10 @@ Equal totals → Tie (Push)`;
               if ((user.balance || 0) < amount) {
                 return res.send({
                   type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                  data: {
-                    content: `❌ Insufficient funds. Your balance: ${user.balance}`,
-                  },
+                  data: { content: `❌ Insufficient funds. Your balance: ${user.balance}` },
                 });
               }
 
-              // Deduct bet and persist
               user.balance = (user.balance || 0) - amount;
               balances[userId] = user;
               writeBalances(balances);
@@ -400,20 +381,12 @@ Equal totals → Tie (Push)`;
             const player = [deck.draw(), deck.draw()];
             const dealer = [deck.draw(), deck.draw()];
 
-            const game = {
-              deck,
-              player,
-              dealer,
-              bet: amount,
-              hasDoubled: false,
-            };
-
+            const game = { deck, player, dealer, bet: amount, hasDoubled: false };
             blackjackGames.set(userId, game);
 
             const pVal = handValue(player);
             const dVal = handValue(dealer);
 
-            // Auto-resolve if either has natural 21
             if (pVal === 21 || dVal === 21) {
               const resultText = settleBlackjack(userId, game, pVal, dVal);
               blackjackGames.delete(userId);
@@ -432,71 +405,46 @@ ${resultText}`,
               });
             }
 
-            // Build initial buttons: Hit / Stand / optional Double Down
             const buttons = [
               { type: 2, style: 1, label: 'Hit', custom_id: 'bj_hit' },
               { type: 2, style: 4, label: 'Stand', custom_id: 'bj_stand' },
             ];
 
-            // Show Double Down if there's a bet and user can afford to double it
             if (amount > 0 && (user.balance || 0) >= amount) {
-              buttons.push({
-                type: 2,
-                style: 3,
-                label: 'Double Down',
-                custom_id: 'bj_double',
-              });
+              buttons.push({ type: 2, style: 3, label: 'Double Down', custom_id: 'bj_double' });
             }
 
             return res.send({
               type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
               data: {
-                content: `🎰 **Blackjack Started!** (Bet: ${amount})\n
+                content: `🎰 **Blackjack Started!** (Bet: ${amount})
+
 Dealer shows: ${dealer[0].value}${suitEmoji(dealer[0].suit)}
-Your hand: ${formatHand(player)} (value ${pVal})\n
+Your hand: ${formatHand(player)} (value ${pVal})
+
 Hit, Stand, or Double Down?`,
-                components: [
-                  {
-                    type: 1,
-                    components: buttons,
-                  },
-                ],
+                components: [{ type: 1, components: buttons }],
               },
             });
           }
         }
       }
 
-      /* 
-         BUTTON INTERACTIONS (Hit / Stand / Double Down)
-      */
       if (type === InteractionType.MESSAGE_COMPONENT) {
-        const userId = body.member.user.id;
         const customId = data.custom_id;
         const game = blackjackGames.get(userId);
 
-        if (
-          customId === 'bj_hit' ||
-          customId === 'bj_stand' ||
-          customId === 'bj_double'
-        ) {
+        if (customId === 'bj_hit') {
           if (!game) {
             return res.send({
               type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content:
-                  'No active Blackjack game! Use `/bj start` to begin a new one.',
-              },
+              data: { content: 'No active Blackjack game! Use `/bj start` to begin a new one.' },
             });
           }
-        }
 
-        /* HIT */
-        if (customId === 'bj_hit') {
           game.player.push(game.deck.draw());
           const pVal = handValue(game.player);
 
-          // Player busts
           if (pVal > 21) {
             const dVal = handValue(game.dealer);
             const resultText = settleBlackjack(userId, game, pVal, dVal);
@@ -516,7 +464,6 @@ ${resultText}`,
             });
           }
 
-          // Player hits exactly 21 -> auto-stand
           if (pVal === 21) {
             let dVal = handValue(game.dealer);
             while (dVal < 17) {
@@ -541,7 +488,6 @@ ${resultText}`,
             });
           }
 
-          // Otherwise, continue game (no Double Down anymore)
           return res.send({
             type: 7,
             data: {
@@ -562,8 +508,14 @@ Hit or Stand?`,
           });
         }
 
-        /* DOUBLE DOWN */
         if (customId === 'bj_double') {
+          if (!game) {
+            return res.send({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: { content: 'No active Blackjack game! Use `/bj start` to begin a new one.' },
+            });
+          }
+
           if (game.hasDoubled) {
             return res.send({
               type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -575,10 +527,7 @@ Hit or Stand?`,
           if (!extraBet) {
             return res.send({
               type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content:
-                  'You can only double down when you have placed a bet.',
-              },
+              data: { content: 'You can only double down when you have placed a bet.' },
             });
           }
 
@@ -588,13 +537,10 @@ Hit or Stand?`,
           if ((userBal.balance || 0) < extraBet) {
             return res.send({
               type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: '❌ Not enough balance to double down.',
-              },
+              data: { content: '❌ Not enough balance to double down.' },
             });
           }
 
-          // Deduct extra bet and double the total bet in game state
           userBal.balance = (userBal.balance || 0) - extraBet;
           balances[userId] = userBal;
           writeBalances(balances);
@@ -602,11 +548,9 @@ Hit or Stand?`,
           game.bet = (game.bet || 0) + extraBet;
           game.hasDoubled = true;
 
-          // Exactly ONE extra card, then auto-stand
           game.player.push(game.deck.draw());
           const pVal = handValue(game.player);
 
-          // Bust after double
           if (pVal > 21) {
             const dVal = handValue(game.dealer);
             const resultText = settleBlackjack(userId, game, pVal, dVal);
@@ -626,7 +570,6 @@ ${resultText}`,
             });
           }
 
-          // Dealer plays out normally
           let dVal = handValue(game.dealer);
           while (dVal < 17) {
             game.dealer.push(game.deck.draw());
@@ -650,10 +593,15 @@ ${resultText}`,
           });
         }
 
-        /* STAND */
         if (customId === 'bj_stand') {
-          let dVal = handValue(game.dealer);
+          if (!game) {
+            return res.send({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: { content: 'No active Blackjack game! Use `/bj start` to begin a new one.' },
+            });
+          }
 
+          let dVal = handValue(game.dealer);
           while (dVal < 17) {
             game.dealer.push(game.deck.draw());
             dVal = handValue(game.dealer);
@@ -661,7 +609,6 @@ ${resultText}`,
 
           const pVal = handValue(game.player);
           const result = settleBlackjack(userId, game, pVal, dVal);
-
           blackjackGames.delete(userId);
 
           return res.send({
@@ -678,15 +625,11 @@ ${result}`,
           });
         }
 
-        // /challenge select menu
         if (customId === 'starter') {
           const choice = (data.values && data.values[0]) || 'something';
           return res.send({
             type: 7,
-            data: {
-              content: `You chose **${choice}**!`,
-              components: [],
-            },
+            data: { content: `You chose **${choice}**!`, components: [] },
           });
         }
       }
